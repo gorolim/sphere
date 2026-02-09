@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import NavBar from "@/components/NavBar";
 import { CREATOR_AGENTS } from "@/lib/creators";
 import { useSearchParams } from "next/navigation";
@@ -53,7 +53,7 @@ interface TimelineClip {
     prompt: string;
 }
 
-export default function VideoStudioPage() {
+function VideoStudioContent() {
     const searchParams = useSearchParams();
     const agentId = searchParams?.get("agentId");
 

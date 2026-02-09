@@ -66,7 +66,7 @@ export default function NavBar() {
                         <MobileNavLink href="/fleet" label="My Fleet" />
                         <MobileNavLink href="/arena" label="Arena Gigs" />
                         <MobileNavLink href="/blog" label="Sphere Chronicles" />
-                        <MobileNavLink href="/admin" label="Admin Console" />
+
                         <button className="w-full text-left mt-4 bg-engine-dark text-white font-mono px-4 py-3 rounded border border-neon-cyan/50">
                             [ CONNECT_NODE ]
                         </button>

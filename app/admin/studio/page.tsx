@@ -1,7 +1,8 @@
-"use client";
 
 import { Suspense } from "react";
 import VideoStudioContent from "@/components/admin/VideoStudioContent";
+
+export const dynamic = "force-dynamic";
 
 export default function VideoStudioPage() {
     return (

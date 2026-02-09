@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  passwordHash  String?   // For the custom "Master Password" flow (bcrypt)
+  role          String    @default("user") // "admin" | "user"
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Agent {
+  id          String   @id @default(cuid())
+  slug        String   @unique // e.g., "market-researcher"
+  name        String
+  role        String   // e.g. "Analyst"
+  vibe        String?
+  description String?
+  avatar      String?
+  isActive    Boolean  @default(false) // [USER REQ]: Default false
+  isPublic    Boolean  @default(true)
+  
+  // Stats for the "Body Shop"
+  cpu         Int      @default(1)
+  ram         Int      @default(1)
+  
+  tokensUsed  TokenUsage[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  content   String   // Markdown or HTML
+  excerpt   String?
+  category  String   // "chronicles" | "pedia" | "hive"
+  status    String   @default("draft") // [USER REQ]: "draft" | "published"
+  author    String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TokenUsage {
+  id          String   @id @default(cuid())
+  agentId     String
+  agent       Agent    @relation(fields: [agentId], references: [id])
+  inputTokens Int
+  outputTokens Int
+  totalTokens Int
+  timestamp   DateTime @default(now())
+}

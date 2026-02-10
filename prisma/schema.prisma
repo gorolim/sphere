@@ -17,6 +17,26 @@ model User {
   role          String    @default("user") // "admin" | "user"
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  
+  stripeCustomerId String?   @unique
+  subscription   Subscription?
+  isPro          Boolean   @default(false)
+  
+  tokensUsed     TokenUsage[]
+  automations    Automation[]
+}
+
+model Subscription {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id])
+  stripeCustomerId   String
+  stripeSubscriptionId String @unique
+  stripePriceId      String
+  status             String
+  currentPeriodEnd   DateTime
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
 
 model Agent {
@@ -24,6 +44,7 @@ model Agent {
   slug        String   @unique // e.g., "market-researcher"
   name        String
   role        String   // e.g. "Analyst"
+  field       String   @default("General") // e.g. "Biology"
   vibe        String?
   description String?
   avatar      String?
@@ -56,10 +77,31 @@ model Post {
 
 model TokenUsage {
   id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
   agentId     String
   agent       Agent    @relation(fields: [agentId], references: [id])
   inputTokens Int
   outputTokens Int
   totalTokens Int
   timestamp   DateTime @default(now())
+
+  @@index([userId])
+  @@index([agentId])
+}
+
+model Automation {
+  id          String   @id @default(cuid())
+  name        String
+  triggerType String   // "NEW_POST" | "USER_SIGNUP" | "AGENT_MESSAGE"
+  webhookUrl  String
+  isActive    Boolean  @default(true)
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
 }

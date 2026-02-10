@@ -10,13 +10,15 @@ interface AgentFleetProps {
     showFilters?: boolean;
     title?: string;
     subtitle?: string;
+    dbAgents?: any[];
 }
 
 export default function AgentFleet({
     limit,
     showFilters = false,
     title = "My Agent Fleet",
-    subtitle = "// AUTHORIZED_PERSONNEL_ONLY"
+    subtitle = "// AUTHORIZED_PERSONNEL_ONLY",
+    dbAgents = []
 }: AgentFleetProps) {
     const [filter, setFilter] = useState("All");
 
@@ -70,41 +72,66 @@ export default function AgentFleet({
                 </div>
 
                 <div className="divide-y divide-white/5">
-                    {displayedAgents.map(agent => (
-                        <div key={agent.id} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-white/5 transition-colors group">
-                            {/* Identity */}
-                            <div className="col-span-6 md:col-span-4 flex items-center gap-4">
-                                <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-lg font-display font-bold text-gray-500 group-hover:text-neon-cyan group-hover:bg-neon-cyan/10 transition-colors">
-                                    {agent.name.charAt(0)}
-                                </div>
-                                <div>
-                                    <div className="font-bold text-white text-sm group-hover:text-neon-cyan transition-colors">{agent.name}</div>
-                                    <div className="text-[10px] font-mono text-gray-500">{agent.id}</div>
-                                </div>
-                            </div>
+                    {displayedAgents.map(agent => {
+                        // Check DB status
+                        const dbAgent = dbAgents.find(dba => dba.slug === agent.id.toLowerCase() || dba.slug === agent.name.toLowerCase().replace(/ /g, '-'));
+                        // Ideally we match by ID, but SPHERE_AGENTS uses custom IDs "LOGIC-001".
+                        // In seed.ts we created agents. I should check how they map.
+                        // Assuming the seed or admin panel created agents with matching IDs or we fallback to 'isActive: false' if not found.
+                        // Let's assume passed dbAgents have a matching ID or we just rely on isActive if we can match.
 
-                            {/* Role */}
-                            <div className="col-span-3 hidden md:block">
-                                <div className="text-xs text-gray-300">{agent.role}</div>
-                                <div className="text-[10px] text-gray-600">{agent.field}</div>
-                            </div>
+                        // Fix: In seed.ts, agents are created with `slug: agent.id`.
+                        const isOnline = dbAgents.find(a => a.slug === agent.id)?.isActive ?? false;
 
-                            {/* Status */}
-                            <div className="col-span-3 md:col-span-2 text-right md:text-left">
-                                <div className="inline-flex items-center gap-2 px-2 py-1 rounded bg-green-500/10 border border-green-500/20 text-[10px] font-mono text-green-500">
-                                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                                    ACTIVE
+                        return (
+                            <div key={agent.id} className={`grid grid-cols-12 gap-4 p-4 items-center transition-colors group ${isOnline ? 'hover:bg-white/5' : 'opacity-70 grayscale hover:grayscale-0'}`}>
+                                {/* Identity */}
+                                <div className="col-span-6 md:col-span-4 flex items-center gap-4">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-display font-bold transition-colors ${isOnline ? 'bg-white/5 text-gray-500 group-hover:text-neon-cyan group-hover:bg-neon-cyan/10' : 'bg-red-500/10 text-red-500'}`}>
+                                        {agent.name.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <div className={`font-bold text-sm transition-colors ${isOnline ? 'text-white group-hover:text-neon-cyan' : 'text-gray-500'}`}>{agent.name}</div>
+                                        <div className="text-[10px] font-mono text-gray-500">{agent.id}</div>
+                                    </div>
+                                </div>
+
+                                {/* Role */}
+                                <div className="col-span-3 hidden md:block">
+                                    <div className="text-xs text-gray-300">{agent.role}</div>
+                                    <div className="text-[10px] text-gray-600">{agent.field}</div>
+                                </div>
+
+                                {/* Status */}
+                                <div className="col-span-3 md:col-span-2 text-right md:text-left">
+                                    {isOnline ? (
+                                        <div className="inline-flex items-center gap-2 px-2 py-1 rounded bg-green-500/10 border border-green-500/20 text-[10px] font-mono text-green-500">
+                                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                                            ACTIVE
+                                        </div>
+                                    ) : (
+                                        <div className="inline-flex items-center gap-2 px-2 py-1 rounded bg-yellow-500/10 border border-yellow-500/20 text-[10px] font-mono text-yellow-500">
+                                            <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></div>
+                                            TRAINING
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Action */}
+                                <div className="col-span-3 text-right">
+                                    {isOnline ? (
+                                        <Link href={`/agents/${agent.id}`} className="text-xs font-mono font-bold text-gray-400 hover:text-white border border-white/10 hover:border-white px-3 py-2 rounded transition-all">
+                                            ACCESS -&gt;
+                                        </Link>
+                                    ) : (
+                                        <span className="text-[10px] font-mono text-gray-600 cursor-not-allowed border border-transparent px-3 py-2">
+                                            LOCKED
+                                        </span>
+                                    )}
                                 </div>
                             </div>
-
-                            {/* Action */}
-                            <div className="col-span-3 text-right">
-                                <Link href={`/agents/${agent.id}`} className="text-xs font-mono font-bold text-gray-400 hover:text-white border border-white/10 hover:border-white px-3 py-2 rounded transition-all">
-                                    ACCESS -&gt;
-                                </Link>
-                            </div>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
 
                 {/* Footer depending on context */}

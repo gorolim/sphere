@@ -1,7 +1,12 @@
 import Link from "next/link";
-import { Activity, Brain, Server, AlertTriangle } from "lucide-react";
+import { Activity, Brain, Server, AlertTriangle, Users, FileText } from "lucide-react";
+import { getAdminStats } from "@/app/actions/admin";
 
-export default function AdminDashboard() {
+export const dynamic = "force-dynamic";
+
+export default async function AdminDashboard() {
+    const stats = await getAdminStats();
+
     return (
         <div>
             <div className="mb-8 flex items-center justify-between">
@@ -19,47 +24,48 @@ export default function AdminDashboard() {
 
             {/* KPI Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-                <KPICard title="Active Agents" value="1" total="5" icon={<Brain className="text-neon-cyan" />} />
-                <KPICard title="System Load" value="12%" change="-2%" icon={<Activity className="text-neon-purple" />} />
-                <KPICard title="Memory Usage" value="4.2TB" change="+5%" icon={<Server className="text-hologram-blue" />} />
-                <KPICard title="Alerts" value="0" status="good" icon={<AlertTriangle className="text-green-500" />} />
+                <KPICard
+                    title="Active Agents"
+                    value={stats.agents.active}
+                    total={stats.agents.total}
+                    icon={<Brain className="text-neon-cyan" />}
+                />
+                <KPICard
+                    title="Total Users"
+                    value={stats.users.total}
+                    change={`${stats.users.pro} PRO`}
+                    icon={<Users className="text-neon-purple" />}
+                />
+                <KPICard
+                    title="Content Library"
+                    value={stats.posts.total}
+                    change={`${stats.posts.published} PUB`}
+                    icon={<FileText className="text-hologram-blue" />}
+                />
+                <KPICard
+                    title="System Load"
+                    value={`${(stats.tokens.total / 1000).toFixed(1)}k`}
+                    change="TOKENS"
+                    icon={<Activity className="text-neon-purple" />}
+                />
+                <KPICard title="System Alerts" value="0" status="good" icon={<AlertTriangle className="text-green-500" />} />
             </div>
 
             {/* Active Agents List */}
             <div className="bg-engine-dark border border-white/10 rounded-xl overflow-hidden">
                 <div className="p-6 border-b border-white/10 flex justify-between items-center">
-                    <h2 className="font-display font-bold text-lg">Deployed Agents</h2>
-                    <Link href="/admin/agents" className="text-xs font-mono text-neon-cyan hover:text-white">VIEW_ALL</Link>
+                    <h2 className="font-display font-bold text-lg">Quick Actions</h2>
+                    <Link href="/admin/agents" className="text-xs font-mono text-neon-cyan hover:text-white">MANAGE_FLEET</Link>
                 </div>
-                <div className="p-6">
-                    <div className="grid grid-cols-1 gap-4">
-                        {/* Agent Card: Market Researcher */}
-                        <Link href="/admin/agents/market-researcher" className="group block">
-                            <div className="bg-white/5 border border-white/10 rounded-lg p-4 flex items-center justify-between hover:bg-white/10 hover:border-neon-cyan/50 transition-all">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-neon-cyan/20 rounded-full flex items-center justify-center text-neon-cyan">
-                                        <Brain size={24} />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-white group-hover:text-neon-cyan transition-colors">Senior AI Market Specialist</h3>
-                                        <div className="flex gap-2 mt-1">
-                                            <span className="text-xs font-mono text-gray-400">ID: AGT-001</span>
-                                            <span className="text-xs font-mono text-green-500">• RUNNING</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-xs text-gray-400 mb-1">NEXT RUN</div>
-                                    <div className="font-mono text-white">12:00 UTC</div>
-                                </div>
-                            </div>
-                        </Link>
-
-                        {/* Placeholder for more agents */}
-                        <div className="bg-black/40 border border-white/5 border-dashed rounded-lg p-4 flex items-center justify-center text-gray-600 font-mono text-sm">
-                            [ SLOT_EMPTY ]
-                        </div>
-                    </div>
+                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Link href="/admin/posts" className="block p-4 bg-white/5 border border-white/10 rounded-lg hover:border-neon-cyan/50 hover:bg-white/10 transition-all group">
+                        <h3 className="font-bold text-white group-hover:text-neon-cyan">Manage Content</h3>
+                        <p className="text-sm text-gray-500">Edit and publish chronicles.</p>
+                    </Link>
+                    <Link href="/admin/agents" className="block p-4 bg-white/5 border border-white/10 rounded-lg hover:border-neon-purple/50 hover:bg-white/10 transition-all group">
+                        <h3 className="font-bold text-white group-hover:text-neon-purple">Deploy Agents</h3>
+                        <p className="text-sm text-gray-500">Activate or configure units.</p>
+                    </Link>
                 </div>
             </div>
         </div>

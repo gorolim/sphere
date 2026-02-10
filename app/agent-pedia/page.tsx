@@ -9,7 +9,7 @@ export default async function AgentPediaPage() {
     // Fetch published pedia entries
     const theses = await prisma.post.findMany({
         where: {
-            // status: "published", // Show all for now to verify seed
+            status: "published",
             category: "pedia"
         },
         orderBy: {

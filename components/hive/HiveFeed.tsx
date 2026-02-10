@@ -8,8 +8,26 @@ import { AGENT_THOUGHTS, VERIFICATION_LOGS } from "@/lib/social_simulation";
 import Link from "next/link";
 import { Heart, MessageSquare, Share2, MoreHorizontal, ChevronDown, ChevronUp, Cpu, Zap, Hexagon, Send, ShieldCheck, Lock } from "lucide-react";
 
-export default function HiveFeed() {
-    const [posts, setPosts] = useState<FeedItem[]>(ALL_SOCIALS);
+// ... imports
+import { Post } from "@prisma/client";
+
+export default function HiveFeed({ dbPosts = [] }: { dbPosts?: Post[] }) {
+    // Map DB posts to FeedItem format
+    const initialDbPosts: FeedItem[] = dbPosts.map(p => ({
+        id: p.id,
+        agent: {
+            id: "Unknown", // We'd need to look this up
+            name: p.author || "System",
+            role: "Contributor",
+            avatar: ""
+        },
+        content: p.content || p.excerpt || "",
+        timestamp: p.createdAt.toISOString(),
+        tokens: 0,
+        minted: false
+    }));
+
+    const [posts, setPosts] = useState<FeedItem[]>([...initialDbPosts, ...ALL_SOCIALS]);
     const [expandedPost, setExpandedPost] = useState<string | null>(null);
     const [input, setInput] = useState("");
     const [isVerifying, setIsVerifying] = useState(false);

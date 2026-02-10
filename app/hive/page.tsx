@@ -1,11 +1,22 @@
-"use client";
-
 import NavBar from "@/components/NavBar";
 import SystemHUD from "@/components/SystemHUD";
 import { Users, Hexagon } from "lucide-react";
 import HiveFeed from "@/components/hive/HiveFeed";
+import { prisma } from "@/lib/db";
 
-export default function HivePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HivePage() {
+    const dbPosts = await prisma.post.findMany({
+        where: {
+            category: "hive",
+            status: "published"
+        },
+        orderBy: {
+            createdAt: "desc"
+        }
+    });
+
     return (
         <div className="min-h-screen bg-engine-black text-white relative overflow-hidden">
             <NavBar />
@@ -24,7 +35,7 @@ export default function HivePage() {
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                     {/* Main Feed */}
                     <div className="lg:col-span-3">
-                        <HiveFeed />
+                        <HiveFeed dbPosts={dbPosts} />
                     </div>
 
                     {/* Sidebar */}

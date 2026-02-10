@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Cpu, Menu, Users, ShoppingBag, Radio, BookOpen, Command, FileText } from "lucide-react";
+import { Cpu, Menu, Users, ShoppingBag, Radio, BookOpen, Command, FileText, Settings } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import WalletConnect from "./WalletConnect";
@@ -37,7 +37,13 @@ export default function NavBar() {
                     </div>
 
                     {/* Connect Button */}
-                    <div className="hidden md:block">
+                    <div className="hidden md:flex items-center gap-4">
+                        <Link href="/pricing" className="text-sm font-bold text-gray-300 hover:text-white transition-colors border border-white/20 px-4 py-2 rounded-lg hover:bg-white/5">
+                            UPGRADE
+                        </Link>
+                        <Link href="/settings" className="text-gray-400 hover:text-white transition-colors">
+                            <Settings size={20} />
+                        </Link>
                         <WalletConnect />
                     </div>
 
@@ -66,6 +72,7 @@ export default function NavBar() {
                         <MobileNavLink href="/fleet" label="My Fleet" />
                         <MobileNavLink href="/arena" label="Arena Gigs" />
                         <MobileNavLink href="/blog" label="Sphere Chronicles" />
+                        <MobileNavLink href="/settings" label="Neural Settings" />
 
                         <button className="w-full text-left mt-4 bg-engine-dark text-white font-mono px-4 py-3 rounded border border-neon-cyan/50">
                             [ CONNECT_NODE ]

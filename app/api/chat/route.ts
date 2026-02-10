@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     try {
         const user = await getCurrentUser();
 
-        if (!user) {
+        if (!user || !user.id) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
@@ -65,6 +65,16 @@ export async function POST(req: Request) {
                 outputTokens,
                 totalTokens
             }
+        });
+
+        // Trigger Automation: Agent Message
+        const { triggerAutomation } = await import("@/lib/automation");
+        await triggerAutomation("AGENT_MESSAGE", {
+            agentId: agent.id,
+            agentName: agent.name,
+            userId: user.id,
+            messages: [...messages, { role: "assistant", content: text }],
+            timestamp: new Date().toISOString()
         });
 
         return NextResponse.json({ role: "assistant", content: text });

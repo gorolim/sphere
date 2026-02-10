@@ -13,6 +13,7 @@ import BodyShop from "@/components/BodyShop";
 import GigCoastPreview from "@/components/GigCoastPreview";
 import AgentPediaPreview from "@/components/AgentPediaPreview";
 import TheArchitect from "@/components/TheArchitect";
+import WorkflowVisualizer from "@/components/WorkflowVisualizer";
 
 export default function Home() {
   return (
@@ -77,6 +78,11 @@ export default function Home() {
             <div className="absolute -inset-4 bg-gradient-to-r from-yellow-500/20 to-purple-500/20 blur-3xl rounded-full opacity-30"></div>
             <JournalistCard />
           </div>
+        </section>
+
+        {/* Section 2.5: The Workflow (How it Works) */}
+        <section className="mb-32">
+          <WorkflowVisualizer />
         </section>
 
         {/* Section 4: Deployed Units (Fleet) */}

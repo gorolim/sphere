@@ -5,7 +5,12 @@ import { CheckCircle, XCircle } from "lucide-react";
 import { checkSubscription } from "@/lib/subscription";
 
 export default async function PricingPage() {
-    const isPro = await checkSubscription();
+    let isPro = false;
+    try {
+        isPro = await checkSubscription();
+    } catch (e) {
+        console.error("Failed to check subscription:", e);
+    }
 
     return (
         <div className="min-h-screen bg-engine-black text-white font-sans">

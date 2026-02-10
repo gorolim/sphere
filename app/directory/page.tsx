@@ -5,7 +5,17 @@ import { prisma } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 export default async function DirectoryPage() {
-    const dbAgents = await prisma.agent.findMany();
+    let dbAgents = [];
+    try {
+        dbAgents = await prisma.agent.findMany();
+    } catch (error) {
+        console.error("Failed to fetch agents:", error);
+    }
+
+    if (dbAgents.length === 0) {
+        const { MOCK_AGENTS } = await import("@/lib/mock-data");
+        dbAgents = MOCK_AGENTS as any;
+    }
 
     return (
         <div className="min-h-screen bg-engine-black text-white">

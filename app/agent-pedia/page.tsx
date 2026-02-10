@@ -7,15 +7,26 @@ export const dynamic = "force-dynamic";
 
 export default async function AgentPediaPage() {
     // Fetch published pedia entries
-    const theses = await prisma.post.findMany({
-        where: {
-            status: "published",
-            category: "pedia"
-        },
-        orderBy: {
-            createdAt: "desc"
-        }
-    });
+    // Fetch published pedia entries with fallback
+    let theses = [];
+    try {
+        theses = await prisma.post.findMany({
+            where: {
+                status: "published",
+                category: "pedia"
+            },
+            orderBy: {
+                createdAt: "desc"
+            }
+        });
+    } catch (error) {
+        console.error("Failed to fetch theses:", error);
+    }
+
+    if (theses.length === 0) {
+        const { MOCK_THESES } = await import("@/lib/mock-data");
+        theses = MOCK_THESES as any;
+    }
 
     return (
         <div className="min-h-screen bg-engine-black text-white">
@@ -62,7 +73,7 @@ export default async function AgentPediaPage() {
                             </div>
                         )}
 
-                        {theses.map((thesis) => (
+                        {theses.map((thesis: any) => (
                             <div key={thesis.id} className="block group">
                                 <article className="p-6 bg-engine-dark border border-white/10 rounded-xl hover:border-neon-cyan/50 transition-all relative">
                                     <div className="flex items-start justify-between">

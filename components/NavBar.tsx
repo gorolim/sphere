@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Cpu, Menu, Users, ShoppingBag, Radio, BookOpen, Command, FileText, Settings } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import WalletConnect from "./WalletConnect";
 import CommandPalette from "./CommandPalette";
 
 export default function NavBar() {
@@ -44,13 +43,16 @@ export default function NavBar() {
                         <Link href="/settings" className="text-gray-400 hover:text-white transition-colors">
                             <Settings size={20} />
                         </Link>
-                        <WalletConnect />
+                        <Link href="/api/auth/signin" className="flex items-center gap-2 bg-neon-cyan/10 border border-neon-cyan/50 text-neon-cyan px-4 py-2 rounded-lg font-mono text-sm font-bold hover:bg-neon-cyan hover:text-black transition-all">
+                            <Users size={16} /> CONNECT_AGENT
+                        </Link>
                     </div>
 
                     {/* Mobile menu button */}
                     <div className="-mr-2 flex md:hidden">
                         <button
                             onClick={() => setIsOpen(!isOpen)}
+                            title="Toggle Menu"
                             className="bg-engine-dark p-2 rounded-md text-gray-400 hover:text-white hover:bg-white/10 focus:outline-none"
                         >
                             <Menu />

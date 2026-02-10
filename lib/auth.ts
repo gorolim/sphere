@@ -48,5 +48,11 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
             }
             return session;
         }
-    }
+    },
+    events: {
+        async createUser({ user }) {
+            const { triggerAutomation } = await import("@/lib/automation");
+            await triggerAutomation("USER_SIGNUP", user);
+        }
+    },
 });

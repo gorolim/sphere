@@ -1,14 +1,9 @@
-import { withAuth } from "next-auth/middleware";
+import NextAuth from "next-auth";
+import { authConfig } from "./auth.config";
 
-export default withAuth({
-    callbacks: {
-        authorized: ({ token }) => {
-            // Only allow if role is admin
-            return token?.role === "admin";
-        },
-    },
-});
+export default NextAuth(authConfig).auth;
 
 export const config = {
-    matcher: ["/admin/:path*"],
+    // https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher
+    matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

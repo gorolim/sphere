@@ -1,35 +1,28 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/db";
+import Credentials from "next-auth/providers/credentials";
+import { authConfig } from "@/auth.config";
 
-const prisma = new PrismaClient();
-
-export const authOptions: NextAuthOptions = {
+export const { auth, signIn, signOut, handlers } = NextAuth({
+    ...authConfig,
     adapter: PrismaAdapter(prisma),
-    session: {
-        strategy: "jwt",
-    },
-    pages: {
-        signIn: "/auth/signin", // Custom login page (we need to create this)
-    },
+    session: { strategy: "jwt" },
     providers: [
-        CredentialsProvider({
+        Credentials({
             name: "Master Access",
             credentials: {
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials) {
-                // [USER REQ]: Master Login System
                 const masterPassword = process.env.ADMIN_PASSWORD;
 
                 if (!masterPassword) {
-                    throw new Error("ADMIN_PASSWORD not set in environment");
+                    console.error("ADMIN_PASSWORD not set");
+                    return null;
                 }
 
                 if (credentials?.password === masterPassword) {
-                    // Return the "Admin" user
                     return {
                         id: "admin-master",
                         name: "The Architect",
@@ -38,7 +31,7 @@ export const authOptions: NextAuthOptions = {
                     };
                 }
 
-                return null; // Login failed
+                return null;
             }
         })
     ],
@@ -56,4 +49,4 @@ export const authOptions: NextAuthOptions = {
             return session;
         }
     }
-};
+});

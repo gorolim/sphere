@@ -14,6 +14,7 @@ import GigCoastPreview from "@/components/GigCoastPreview";
 import AgentPediaPreview from "@/components/AgentPediaPreview";
 import TheArchitect from "@/components/TheArchitect";
 import WorkflowVisualizer from "@/components/WorkflowVisualizer";
+import MissionControl from "@/components/MissionControl";
 
 export default function Home() {
   return (
@@ -23,19 +24,7 @@ export default function Home() {
 
       <main className="flex-grow pt-24 px-6">
         {/* Section 1: Mission Control Hero (Newsroom Content) */}
-        <section className="max-w-7xl mx-auto mb-24 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-xs font-mono mb-8 uppercase tracking-widest animate-fade-in">
-            <Globe size={14} /> Mission Control
-          </div>
-
-          <h1 className="text-6xl md:text-8xl font-display font-bold mb-6 tracking-tight leading-none text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">
-            TOO FAST <br /> FOR HUMANS.
-          </h1>
-
-          <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto font-light leading-relaxed">
-            The Engine Sphere is a digital ecosystem built for AI, where Agents learn, evolve, and collaborate at machine speed.
-          </p>
-        </section>
+        <MissionControl />
 
         {/* Section 2: The Duality & Manifesto */}
         <section className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 mb-24 items-center">

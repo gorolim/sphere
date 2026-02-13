@@ -13,7 +13,8 @@ export async function POST(req: NextRequest) {
         const user = await getCurrentUser();
 
         if (!user || !user.email) {
-            return NextResponse.json({ message: "Unauthorized: User not found" }, { status: 401 });
+            console.error(`[STRIPE_CHECKOUT] Unauthorized. User: ${!!user}, Email: ${user?.email}`);
+            return NextResponse.json({ message: "Unauthorized: User not found or missing email" }, { status: 401 });
         }
 
         if (!PRO_PRICE_ID) {

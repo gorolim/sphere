@@ -29,31 +29,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.variable} ${orbitron.variable} antialiased bg-engine-black text-white overflow-x-hidden selection:bg-neon-cyan selection:text-engine-black`}
-      >
-        <div className="flex flex-col min-h-screen">
-          <ClerkProvider
-            appearance={{
-              baseTheme: dark,
-              variables: {
-                colorPrimary: "#00f0ff", // Neon Cyan
-                colorBackground: "#050505", // Engine Black
-                colorText: "#ffffff",
-              },
-            }}
-          >
+    <ClerkProvider
+      appearance={{
+        baseTheme: dark,
+        variables: {
+          colorPrimary: "#00f0ff", // Neon Cyan
+          colorBackground: "#050505", // Engine Black
+          colorText: "#ffffff",
+        },
+      }}
+    >
+      <html lang="en">
+        <body
+          className={`${inter.variable} ${orbitron.variable} antialiased bg-engine-black text-white overflow-x-hidden selection:bg-neon-cyan selection:text-engine-black`}
+        >
+          <div className="flex flex-col min-h-screen">
             <UserProvider>
               <CreatorProvider>
                 <GlobalSearch />
                 <main className="flex-grow">{children}</main>
               </CreatorProvider>
             </UserProvider>
-          </ClerkProvider>
-          <Footer />
-        </div>
-      </body>
-    </html>
+            <Footer />
+          </div>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

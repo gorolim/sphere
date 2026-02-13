@@ -16,9 +16,13 @@ export default function CheckoutModal() {
             });
 
             const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || "Failed to create checkout session");
+            }
             window.location.href = data.url;
-        } catch (error) {
+        } catch (error: any) {
             console.error("Payment Error", error);
+            alert(`Payment Error: ${error.message || "Something went wrong"}`);
         } finally {
             setLoading(false);
         }

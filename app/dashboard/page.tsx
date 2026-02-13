@@ -3,6 +3,8 @@ import { Zap, Bot, Activity, Box } from "lucide-react";
 import { getCurrentUser } from "@/lib/user";
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
     const user = await getCurrentUser();
 

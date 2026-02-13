@@ -1,9 +1,19 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const isProtectedRoute = createRouteMatcher(["/admin(.*)", "/dashboard(.*)"]);
+// Define protected routes
+const isMasterAdminRoute = createRouteMatcher(["/master-admin(.*)"]);
+const isDashboardRoute = createRouteMatcher(["/dashboard(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
-    if (isProtectedRoute(req)) await auth.protect();
+    // Protect Master Admin routes
+    if (isMasterAdminRoute(req)) {
+        await auth.protect(); // Basic protection, role check should happen in the page/layout
+    }
+
+    // Protect User Dashboard routes
+    if (isDashboardRoute(req)) {
+        await auth.protect();
+    }
 });
 
 export const config = {

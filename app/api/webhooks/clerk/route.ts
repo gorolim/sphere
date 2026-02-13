@@ -8,6 +8,7 @@ export async function POST(req: Request) {
     const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 
     if (!WEBHOOK_SECRET) {
+        console.error("Missing WEBHOOK_SECRET");
         throw new Error("Please add WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local");
     }
 
@@ -19,6 +20,7 @@ export async function POST(req: Request) {
 
     // If there are no headers, error out
     if (!svix_id || !svix_timestamp || !svix_signature) {
+        console.error("Missing svix headers");
         return new Response("Error occured -- no svix headers", {
             status: 400,
         });
@@ -52,29 +54,39 @@ export async function POST(req: Request) {
     const eventType = evt.type;
 
     console.log(`Webhook with and ID of ${id} and type of ${eventType}`);
-    console.log("Webhook body:", body);
 
     if (eventType === "user.created" || eventType === "user.updated") {
-        const { id, email_addresses, first_name, last_name, image_url } = evt.data;
-        const email = email_addresses[0]?.email_address;
-        const name = `${first_name || ""} ${last_name || ""}`.trim() || email;
+        try {
+            const { id, email_addresses, first_name, last_name, image_url } = evt.data;
+            const email = email_addresses[0]?.email_address;
+            const name = `${first_name || ""} ${last_name || ""}`.trim() || email;
 
-        if (email) {
-            await prisma.user.upsert({
-                where: { clerkId: id },
-                update: {
-                    name,
-                    email,
-                    // image: image_url, // Add to schema if we want to sync avatar URL
-                },
-                create: {
-                    clerkId: id,
-                    name,
-                    email,
-                    role: "user",
-                    isPro: false,
-                },
-            });
+            if (email) {
+                await prisma.user.upsert({
+                    where: { clerkId: id },
+                    update: {
+                        name,
+                        email,
+                        // image: image_url, // Add to schema if we want to sync avatar URL
+                    },
+                    create: {
+                        clerkId: id,
+                        name,
+                        email,
+                        role: "user",
+                        isPro: false,
+                        // stripeCustomerId is optional, handled by checkout flow or separate webhook
+                    },
+                });
+                console.log(`User ${id} (${email}) upserted successfully`);
+            } else {
+                console.warn(`User ${id} has no email address, skipping upsert`);
+            }
+        } catch (error) {
+            console.error(`Error processing ${eventType} for user ${id}:`, error);
+            // Return 200 to Clerk so they don't retry indefinitely if it's a logic error
+            // But log heavily so we can debug.
+            return new Response("Error processing user data", { status: 500 });
         }
     }
 

@@ -41,8 +41,13 @@ export default function NavBar() {
                         <Link href="/pricing" className="text-sm font-bold text-gray-300 hover:text-white transition-colors border border-white/20 px-4 py-2 rounded-lg hover:bg-white/5">
                             UPGRADE
                         </Link>
-                        <Link href="/settings" className="text-gray-400 hover:text-white transition-colors">
+                        {/* Master Admin Link - Protected by Middleware */}
+                        <Link href="/master-admin" className="text-red-500 hover:text-red-400 transition-colors" title="Master Control">
                             <Settings size={20} />
+                        </Link>
+
+                        <Link href="/dashboard" className="text-neon-cyan hover:text-neon-cyan/80 transition-colors flex items-center gap-2">
+                            <Cpu size={20} /> <span className="font-mono font-bold">DASHBOARD</span>
                         </Link>
 
                         <div className="flex items-center gap-4">

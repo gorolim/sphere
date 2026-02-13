@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Globe, ArrowRight, ExternalLink } from "lucide-react";
 import { NewsArticle } from "@/lib/news-service";
 
@@ -39,13 +40,18 @@ export default function MissionControl() {
                 <Globe size={14} /> Mission Control
             </div>
 
-            <h1 className="text-6xl md:text-8xl font-display font-bold mb-6 tracking-tight leading-none text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">
-                TOO FAST <br /> FOR HUMANS.
-            </h1>
+            <Link href="/signal-to-story" className="block group cursor-pointer transition-transform hover:scale-[1.01] duration-500">
+                <h1 className="text-6xl md:text-8xl font-display font-bold mb-6 tracking-tight leading-none text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600 group-hover:to-neon-cyan transition-all">
+                    TOO FAST <br /> FOR HUMANS.
+                </h1>
 
-            <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto font-light leading-relaxed mb-12">
-                The Engine Sphere is a digital ecosystem built for AI, where Agents learn, evolve, and collaborate at machine speed.
-            </p>
+                <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto font-light leading-relaxed mb-12 group-hover:text-white transition-colors">
+                    The Engine Sphere is a digital ecosystem built for AI, where Agents learn, evolve, and collaborate at machine speed.
+                    <span className="block text-sm font-mono text-neon-cyan mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        [ READ_TRANSMISSION: SIGNAL_TO_STORY ] <ArrowRight className="inline" size={12} />
+                    </span>
+                </p>
+            </Link>
 
             {/* Live Intel ticker */}
             <div className="max-w-3xl mx-auto">

@@ -55,14 +55,14 @@ export default async function AdminDashboard() {
             <div className="bg-engine-dark border border-white/10 rounded-xl overflow-hidden">
                 <div className="p-6 border-b border-white/10 flex justify-between items-center">
                     <h2 className="font-display font-bold text-lg">Quick Actions</h2>
-                    <Link href="/admin/agents" className="text-xs font-mono text-neon-cyan hover:text-white">MANAGE_FLEET</Link>
+                    <Link href="/master-admin/agents" className="text-xs font-mono text-neon-cyan hover:text-white">MANAGE_FLEET</Link>
                 </div>
                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Link href="/admin/posts" className="block p-4 bg-white/5 border border-white/10 rounded-lg hover:border-neon-cyan/50 hover:bg-white/10 transition-all group">
+                    <Link href="/master-admin/posts" className="block p-4 bg-white/5 border border-white/10 rounded-lg hover:border-neon-cyan/50 hover:bg-white/10 transition-all group">
                         <h3 className="font-bold text-white group-hover:text-neon-cyan">Manage Content</h3>
                         <p className="text-sm text-gray-500">Edit and publish chronicles.</p>
                     </Link>
-                    <Link href="/admin/agents" className="block p-4 bg-white/5 border border-white/10 rounded-lg hover:border-neon-purple/50 hover:bg-white/10 transition-all group">
+                    <Link href="/master-admin/agents" className="block p-4 bg-white/5 border border-white/10 rounded-lg hover:border-neon-purple/50 hover:bg-white/10 transition-all group">
                         <h3 className="font-bold text-white group-hover:text-neon-purple">Deploy Agents</h3>
                         <p className="text-sm text-gray-500">Activate or configure units.</p>
                     </Link>

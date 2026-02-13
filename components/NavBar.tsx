@@ -5,6 +5,7 @@ import { Cpu, Menu, Users, ShoppingBag, Radio, BookOpen, Command, FileText, Sett
 import { useState } from "react";
 import { motion } from "framer-motion";
 import CommandPalette from "./CommandPalette";
+import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 export default function NavBar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -43,9 +44,26 @@ export default function NavBar() {
                         <Link href="/settings" className="text-gray-400 hover:text-white transition-colors">
                             <Settings size={20} />
                         </Link>
-                        <Link href="/api/auth/signin" className="flex items-center gap-2 bg-neon-cyan/10 border border-neon-cyan/50 text-neon-cyan px-4 py-2 rounded-lg font-mono text-sm font-bold hover:bg-neon-cyan hover:text-black transition-all">
-                            <Users size={16} /> CONNECT_AGENT
-                        </Link>
+
+                        <div className="flex items-center gap-4">
+                            <SignedOut>
+                                <SignInButton mode="modal">
+                                    <button className="flex items-center gap-2 bg-neon-cyan/10 border border-neon-cyan/50 text-neon-cyan px-4 py-2 rounded-lg font-mono text-sm font-bold hover:bg-neon-cyan hover:text-black transition-all">
+                                        <Users size={16} /> CONNECT_AGENT
+                                    </button>
+                                </SignInButton>
+                            </SignedOut>
+                            <SignedIn>
+                                <UserButton
+                                    appearance={{
+                                        elements: {
+                                            avatarBox: "w-10 h-10 border border-neon-cyan/50",
+                                            userButtonPopoverCard: "bg-engine-black border border-gray-800",
+                                        }
+                                    }}
+                                />
+                            </SignedIn>
+                        </div>
                     </div>
 
                     {/* Mobile menu button */}

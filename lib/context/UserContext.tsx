@@ -2,77 +2,103 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { AgentProfile, HardwareItem } from "@/lib/brain";
+import { useUser as useClerkUser, useClerk } from "@clerk/nextjs";
 
 interface UserState {
     name: string;
-    email: string; // Fake email for "login"
+    email: string;
     avatar: string;
-    balance: number; // in SPHERE Credits (or ETH equivalent visually)
+    balance: number; // in SPHERE Credits
     hiredAgents: string[]; // Agent IDs
     inventory: string[]; // Hardware IDs
     isLoggedIn: boolean;
+    role: string;
 }
 
 interface UserContextType {
     user: UserState;
-    login: (name: string) => void;
-    logout: () => void;
-    hireAgent: (agent: AgentProfile, cost: number) => boolean;
-    buyHardware: (itemId: string, cost: number) => boolean;
+    login: () => void; // Redirects to Clerk login
+    logout: () => void; // Clerk logout
+    hireAgent: (agent: AgentProfile, cost: number) => Promise<boolean>;
+    buyHardware: (itemId: string, cost: number) => Promise<boolean>;
     addBalance: (amount: number) => void;
+    isLoading: boolean;
 }
 
 const defaultUser: UserState = {
     name: "Guest",
     email: "",
     avatar: "",
-    balance: 5000, // Starting Credits
+    balance: 0,
     hiredAgents: [],
     inventory: [],
-    isLoggedIn: false
+    isLoggedIn: false,
+    role: "user",
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
+    const { user: clerkUser, isLoaded: isClerkLoaded, isSignedIn } = useClerkUser();
+    const { signOut, openSignIn } = useClerk();
+
     const [user, setUser] = useState<UserState>(defaultUser);
-    const [isLoaded, setIsLoaded] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Load from LocalStorage
+    // Sync Clerk user with our local state/DB
     useEffect(() => {
-        const saved = localStorage.getItem("sphere_user_v1");
-        if (saved) {
-            setUser(JSON.parse(saved));
-        }
-        setIsLoaded(true);
-    }, []);
+        if (!isClerkLoaded) return;
 
-    // Save to LocalStorage
+        if (isSignedIn && clerkUser) {
+            // In a real app, we would fetch the BALANCE and INVENTORY from our DB API here.
+            // For now, we'll simulate fetching or use local storage as a cache, 
+            // but rely on Clerk for identity.
+
+            // TODO: Fetch from /api/user/me to get real DB data (credits, etc)
+            const saved = localStorage.getItem(`sphere_user_${clerkUser.id}`);
+            const savedData = saved ? JSON.parse(saved) : {};
+
+            setUser({
+                name: clerkUser.fullName || clerkUser.firstName || "User",
+                email: clerkUser.primaryEmailAddress?.emailAddress || "",
+                avatar: clerkUser.imageUrl,
+                balance: savedData.balance || 1000, // Starter credits
+                hiredAgents: savedData.hiredAgents || [],
+                inventory: savedData.inventory || [],
+                isLoggedIn: true,
+                role: "user" // We could fetch this from publicMetadata if synced
+            });
+        } else {
+            setUser(defaultUser);
+        }
+        setIsLoading(false);
+    }, [isClerkLoaded, isSignedIn, clerkUser]);
+
+    // Save state changes (mock DB persistence)
     useEffect(() => {
-        if (isLoaded) {
-            localStorage.setItem("sphere_user_v1", JSON.stringify(user));
+        if (user.isLoggedIn && clerkUser) {
+            localStorage.setItem(`sphere_user_${clerkUser.id}`, JSON.stringify({
+                balance: user.balance,
+                hiredAgents: user.hiredAgents,
+                inventory: user.inventory
+            }));
         }
-    }, [user, isLoaded]);
+    }, [user, clerkUser]);
 
-    const login = (name: string) => {
-        setUser({
-            ...user,
-            name,
-            email: `${name.toLowerCase().replace(" ", ".")}@humans.sphere`,
-            isLoggedIn: true,
-            // If first time login, maybe give bonus? kept simple for now
-        });
+    const login = () => {
+        openSignIn();
     };
 
     const logout = () => {
+        signOut();
         setUser(defaultUser);
-        localStorage.removeItem("sphere_user_v1");
     };
 
-    const hireAgent = (agent: AgentProfile, cost: number) => {
+    const hireAgent = async (agent: AgentProfile, cost: number) => {
         if (user.balance < cost) return false;
-        if (user.hiredAgents.includes(agent.id)) return false; // Already hired
+        if (user.hiredAgents.includes(agent.id)) return false;
 
+        // TODO: Call API to deduct credits in DB
         setUser(prev => ({
             ...prev,
             balance: prev.balance - cost,
@@ -81,9 +107,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
         return true;
     };
 
-    const buyHardware = (itemId: string, cost: number) => {
+    const buyHardware = async (itemId: string, cost: number) => {
         if (user.balance < cost) return false;
 
+        // TODO: Call API to deduct credits in DB
         setUser(prev => ({
             ...prev,
             balance: prev.balance - cost,
@@ -93,11 +120,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
     };
 
     const addBalance = (amount: number) => {
+        // This would normally be a Stripe webhook result
         setUser(prev => ({ ...prev, balance: prev.balance + amount }));
     };
 
     return (
-        <UserContext.Provider value={{ user, login, logout, hireAgent, buyHardware, addBalance }}>
+        <UserContext.Provider value={{ user, login, logout, hireAgent, buyHardware, addBalance, isLoading }}>
             {children}
         </UserContext.Provider>
     );

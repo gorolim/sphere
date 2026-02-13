@@ -3,47 +3,37 @@ import NavBar from "@/components/NavBar";
 import { SPHERE_AGENTS } from "@/lib/brain";
 import Link from "next/link";
 import { Shield, AlertTriangle } from "lucide-react";
-import { getCurrentUser } from "@/lib/user";
-import { prisma } from "@/lib/db";
+import { currentUser } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function FleetPage() {
-    const sessionUser = await getCurrentUser();
+    const clerkUser = await currentUser();
 
-    if (!sessionUser?.email) {
-        redirect("/api/auth/signin");
+    if (!clerkUser) {
+        redirect("/sign-in");
     }
 
     const user = await prisma.user.findUnique({
-        where: { email: sessionUser.email }
+        where: { clerkId: clerkUser.id }
     });
 
     if (!user) {
-        return <div>User not found</div>;
+        // Handle case where user exists in Clerk but not DB (webhook lag?)
+        return (
+            <div className="min-h-screen bg-engine-black text-white flex items-center justify-center font-mono">
+                <div className="text-center">
+                    <h1 className="text-2xl mb-2 text-neon-cyan">INITIALIZING PROFILE...</h1>
+                    <p className="text-gray-400">Please refresh in a moment.</p>
+                </div>
+            </div>
+        );
     }
 
-    // Filter agents that are in the user's hired list (mocked for now in user context, but here we need DB)
-    // Since we don't have a real 'HiredAgent' model yet besides the 'hiredAgents' array possibly in User (not in schema yet?), 
-    // let's assume all users have access to specific agents or we check the 'Subscription' logic.
-    // For this demo, let's just fetch ALL agents from DB and filter by some logic or just show "Active" ones if we want to simulate a fleet.
-    // Wait, the previous FleetPage used `useUser` context which had `hiredAgents`. 
-    // In our Server Action world, we haven't fully implemented 'hiring' persistence in DB (User model doesn't have hiredAgents).
-    // The user asked for "Control my 16 Specialist Agents".
-    // Let's list ALL agents that are ACTIVE in the fleet for now, or just all agents but with status.
-
-    // Actually, looking at previous `FleetPage`, it filtered `SPHERE_AGENTS` by `user.hiredAgents`.
-    // Since we don't have `hiredAgents` in DB User model, I'll just show ALL agents for now, or maybe just the ones that are "Free" or "Active".
-    // To respect the "My Fleet" concept, I'll display all agents but maybe group them?
-    // Let's just show all *Active* agents as "My Fleet" for now since "Buying" isn't fully persisted yet.
-
-    // Better: Allow the user to see all agents they "have access to". 
-    // For now, let's fetch all DB agents.
+    // Connect user agents logic would go here. For now viewing all agents.
     const dbAgents = await prisma.agent.findMany();
-
-    // In the future we would filter by `user.hiredAgents` from DB.
-    // For now, let's just match the `SPHERE_AGENTS` with the DB status.
     const displayedAgents = SPHERE_AGENTS;
 
     return (

@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
         const user = await getCurrentUser();
 
         if (!user || !user.email) {
-            return new NextResponse("Unauthorized", { status: 401 });
+            return NextResponse.json({ message: "Unauthorized: User not found" }, { status: 401 });
         }
 
         if (!PRO_PRICE_ID) {

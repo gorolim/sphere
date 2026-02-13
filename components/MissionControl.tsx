@@ -40,7 +40,7 @@ export default function MissionControl() {
                 <Globe size={14} /> Mission Control
             </div>
 
-            <Link href="/signal-to-story" className="block group cursor-pointer transition-transform hover:scale-[1.01] duration-500">
+            <Link href="/pricing" className="block group cursor-pointer transition-transform hover:scale-[1.01] duration-500">
                 <h1 className="text-6xl md:text-8xl font-display font-bold mb-6 tracking-tight leading-none text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600 group-hover:to-neon-cyan transition-all">
                     TOO FAST <br /> FOR HUMANS.
                 </h1>

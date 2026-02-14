@@ -5,10 +5,19 @@ import { useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Zap, Lock } from "lucide-react";
 
-export default function CheckoutModal() {
+interface CheckoutModalProps {
+    isLoggedIn: boolean;
+}
+
+export default function CheckoutModal({ isLoggedIn }: CheckoutModalProps) {
     const [loading, setLoading] = useState(false);
 
     const onSubscribe = async () => {
+        if (!isLoggedIn) {
+            window.location.href = "/sign-in?redirect_url=/pricing";
+            return;
+        }
+
         try {
             setLoading(true);
             const response = await fetch("/api/stripe/checkout", {
@@ -39,7 +48,7 @@ export default function CheckoutModal() {
             ) : (
                 <>
                     <Zap className="group-hover:text-yellow-300 transition-colors" size={20} />
-                    Upgrade to Architect
+                    {isLoggedIn ? "Upgrade to Architect" : "Sign in to Upgrade"}
                 </>
             )}
         </button>

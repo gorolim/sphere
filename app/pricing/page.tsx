@@ -3,11 +3,17 @@ import NavBar from "@/components/NavBar";
 import CheckoutModal from "@/components/CheckoutModal";
 import { CheckCircle, XCircle, Radio, Database, PenTool, Zap, ArrowRight } from "lucide-react";
 import { checkSubscription } from "@/lib/subscription";
+import { currentUser } from "@clerk/nextjs/server";
 
 export default async function PricingPage() {
     let isPro = false;
+    let isLoggedIn = false;
     try {
-        isPro = await checkSubscription();
+        const user = await currentUser();
+        isLoggedIn = !!user;
+        if (user) {
+            isPro = await checkSubscription();
+        }
     } catch (e) {
         console.error("Failed to check subscription:", e);
     }
@@ -157,7 +163,11 @@ export default async function PricingPage() {
                                 Plan Active
                             </button>
                         ) : (
-                            <CheckoutModal />
+                            <CheckoutModal isLoggedIn={isLoggedIn} />
+                            /* Note: isPro is false if not logged in OR if not pro. 
+                               We need to know if they are logged in at all. 
+                               Let's check currentUser from clerk in the component or pass it here.
+                            */
                         )}
                     </div>
                 </div>

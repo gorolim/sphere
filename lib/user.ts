@@ -61,7 +61,8 @@ export async function getCurrentUser() {
 
         return user;
     } catch (error) {
-        console.error("Error fetching/syncing current user:", error);
+        console.error("[GET_CURRENT_USER] Error:", error);
+        // We return null so the caller handles the "not found" state
         return null;
     }
 }

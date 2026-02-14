@@ -5,10 +5,21 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/user";
 
 export async function getAdminStats() {
-    const user = await getCurrentUser();
-    if (!user) throw new Error("Unauthorized");
-
     try {
+        const user = await getCurrentUser();
+
+        // Secure: Only allow actual admins
+        if (!user || user.role !== "admin") {
+            console.warn("[ADMIN_STATS] Unauthorized access attempt", user?.id);
+            return {
+                error: "Unauthorized",
+                agents: { total: 0, active: 0 },
+                users: { total: 0, pro: 0 },
+                posts: { total: 0, published: 0 },
+                tokens: { total: 0 }
+            };
+        }
+
         const [
             totalAgents,
             activeAgents,
@@ -36,9 +47,9 @@ export async function getAdminStats() {
             tokens: { total: totalTokens._sum.totalTokens || 0 }
         };
     } catch (error) {
-        console.error("Failed to fetch admin stats:", error);
-        // Return blank stats to prevent page crash
+        console.error("[ADMIN_STATS] Failed to fetch stats:", error);
         return {
+            error: "System Error",
             agents: { total: 0, active: 0 },
             users: { total: 0, pro: 0 },
             posts: { total: 0, published: 0 },

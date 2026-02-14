@@ -19,6 +19,29 @@ export default async function AdminDashboard() {
         // We will show a degraded UI instead of crashing
     }
 
+    // @ts-ignore - We know stats might have error, simpler than updating type definition everywhere right now
+    if (stats.error) {
+        if (stats.error === "Unauthorized") {
+            return (
+                <div className="flex flex-col items-center justify-center h-96 text-red-500">
+                    <AlertTriangle size={48} className="mb-4" />
+                    <h1 className="text-2xl font-bold">ACCESS DENIED</h1>
+                    <p className="text-gray-400 mt-2">Clearance Level Insufficient.</p>
+                    <Link href="/" className="mt-6 px-4 py-2 bg-white/10 rounded hover:bg-white/20 text-white">
+                        Return to Base
+                    </Link>
+                </div>
+            )
+        }
+        return (
+            <div className="flex flex-col items-center justify-center h-96 text-yellow-500">
+                <AlertTriangle size={48} className="mb-4" />
+                <h1 className="text-2xl font-bold">SYSTEM OFFLINE</h1>
+                <p className="text-gray-400 mt-2">Unable to retrieve fleet telemetry.</p>
+            </div>
+        )
+    }
+
     return (
         <div>
             <div className="mb-8 flex items-center justify-between">

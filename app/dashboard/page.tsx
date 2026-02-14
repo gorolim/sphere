@@ -14,19 +14,27 @@ export default async function DashboardPage() {
         const clerkUser = await currentUser();
         if (clerkUser) {
             return (
-                <div className="min-h-screen bg-engine-black text-white flex flex-col items-center justify-center p-6">
+                <div className="min-h-screen bg-engine-black text-white flex flex-col items-center justify-center p-6 text-center">
                     <Loader2 className="w-12 h-12 text-neon-cyan animate-spin mb-4" />
                     <h1 className="text-2xl font-display font-bold mb-2">Establishing Uplink...</h1>
-                    <p className="text-gray-400 text-center max-w-md mb-8">
+                    <p className="text-gray-400 max-w-md mb-8">
                         Your neural link is active, but we are still synchronizing your profile with The Hive.
-                        This should only take a moment.
                     </p>
-                    <meta httpEquiv="refresh" content="2" />
+
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-6 py-2 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/50 rounded-lg font-bold hover:bg-neon-cyan hover:text-black transition-all"
+                    >
+                        RETRY CONNECTION
+                    </button>
+                    {/* Meta refresh as backup */}
+                    <meta httpEquiv="refresh" content="5" />
                 </div>
             );
         }
         redirect("/sign-in");
     }
+
 
     return (
         <div className="min-h-screen bg-engine-black text-white font-sans pt-24 px-6 md:px-12">

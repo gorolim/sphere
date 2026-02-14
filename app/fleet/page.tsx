@@ -7,6 +7,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/user";
+import SyncRetryButton from "@/components/SyncRetryButton";
 
 export const dynamic = "force-dynamic";
 
@@ -25,25 +26,34 @@ export default async function FleetPage() {
 
         return (
             <div className="min-h-screen bg-engine-black text-white flex flex-col items-center justify-center font-mono p-6 text-center">
-                <div className="text-center">
+                <div className="text-center w-full max-w-md flex flex-col items-center">
                     <h1 className="text-2xl mb-2 text-neon-cyan">INITIALIZING PROFILE...</h1>
                     <p className="text-gray-400 mb-6">Synchronization in progress.</p>
-                    <button
-                        // @ts-ignore
-                        onClick={() => window.location.reload()}
-                        className="px-4 py-2 border border-white/20 hover:bg-white/10 rounded"
-                    >
-                        RETRY_UPLINK
-                    </button>
-                    {/* Fallback refresh */}
-                    <meta httpEquiv="refresh" content="3" />
+
+                    <SyncRetryButton />
+
+                    <div className="mt-8 text-left bg-gray-900/50 p-4 rounded-lg w-full">
+                        <p className="text-xs text-gray-500 font-mono mb-1">DIAGNOSTICS:</p>
+                        <p className="text-xs text-red-400 font-mono">
+                            STATUS: WAITING_FOR_SYNC<br />
+                            USER_ID: {clerkUser.id}
+                        </p>
+                    </div>
                 </div>
             </div>
         );
     }
 
     // Connect user agents logic would go here. For now viewing all agents.
-    const dbAgents = await prisma.agent.findMany();
+    let dbAgents: any[] = [];
+    try {
+        dbAgents = await prisma.agent.findMany();
+    } catch (error) {
+        console.error("Fleet Page Agent Fetch Error:", error);
+        // Fallback or empty array so page doesn't crash
+        dbAgents = [];
+    }
+
     const displayedAgents = SPHERE_AGENTS;
 
     return (

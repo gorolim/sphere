@@ -4,6 +4,8 @@ import { Zap, Bot, Activity, Box, Loader2, AlertTriangle } from "lucide-react";
 import { getCurrentUser } from "@/lib/user";
 import { redirect } from "next/navigation";
 
+import SyncRetryButton from "@/components/SyncRetryButton";
+
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
@@ -25,17 +27,14 @@ export default async function DashboardPage() {
                         The uplink to The Hive database is unstable. We are attempting to re-establish the neural link.
                     </p>
 
-                    <div className="flex flex-col gap-4">
-                        <button
-                            onClick={() => window.location.reload()}
-                            className="px-6 py-2 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/50 rounded-lg font-bold hover:bg-neon-cyan hover:text-black transition-all"
-                        >
-                            RETRY UPLINK
-                        </button>
+                    <SyncRetryButton />
 
-                        <p className="text-xs text-gray-600 font-mono">
-                            ERROR_CODE: DB_SYNC_TIMEOUT_OR_FAILURE <br />
-                            USER_ID: {clerkUser.id}
+                    <div className="mt-8 text-left bg-gray-900/50 p-4 rounded-lg w-full max-w-md">
+                        <p className="text-xs text-gray-500 font-mono mb-1">DIAGNOSTICS:</p>
+                        <p className="text-xs text-red-400 font-mono">
+                            STATUS: DB_RECORD_MISSING<br />
+                            USER_ID: {clerkUser.id}<br />
+                            CLERK_LINK: ACTIVE
                         </p>
                     </div>
                 </div>

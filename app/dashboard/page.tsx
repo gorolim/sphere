@@ -10,25 +10,34 @@ export default async function DashboardPage() {
     const user = await getCurrentUser();
 
     if (!user) {
-        // Check if logged in via Clerk but not synced to DB yet
+        // Check if logged in via Clerk but not synced to DB yet OR DB is down
         const clerkUser = await currentUser();
+
         if (clerkUser) {
+            // Distinguish between "Not Synced" and "DB Error"
+            // For now, we treat them similarly - we need the DB record.
+
             return (
                 <div className="min-h-screen bg-engine-black text-white flex flex-col items-center justify-center p-6 text-center">
-                    <Loader2 className="w-12 h-12 text-neon-cyan animate-spin mb-4" />
-                    <h1 className="text-2xl font-display font-bold mb-2">Establishing Uplink...</h1>
+                    <AlertTriangle className="w-12 h-12 text-yellow-500 mb-4 animate-pulse" />
+                    <h1 className="text-2xl font-display font-bold mb-2">Connection Interrupted</h1>
                     <p className="text-gray-400 max-w-md mb-8">
-                        Your neural link is active, but we are still synchronizing your profile with The Hive.
+                        The uplink to The Hive database is unstable. We are attempting to re-establish the neural link.
                     </p>
 
-                    <button
-                        onClick={() => window.location.reload()}
-                        className="px-6 py-2 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/50 rounded-lg font-bold hover:bg-neon-cyan hover:text-black transition-all"
-                    >
-                        RETRY CONNECTION
-                    </button>
-                    {/* Meta refresh as backup */}
-                    <meta httpEquiv="refresh" content="5" />
+                    <div className="flex flex-col gap-4">
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="px-6 py-2 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/50 rounded-lg font-bold hover:bg-neon-cyan hover:text-black transition-all"
+                        >
+                            RETRY UPLINK
+                        </button>
+
+                        <p className="text-xs text-gray-600 font-mono">
+                            ERROR_CODE: DB_SYNC_TIMEOUT_OR_FAILURE <br />
+                            USER_ID: {clerkUser.id}
+                        </p>
+                    </div>
                 </div>
             );
         }

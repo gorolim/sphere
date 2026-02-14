@@ -27,6 +27,13 @@ export default async function AdminDashboard() {
                     <AlertTriangle size={48} className="mb-4" />
                     <h1 className="text-2xl font-bold">ACCESS DENIED</h1>
                     <p className="text-gray-400 mt-2">Clearance Level Insufficient.</p>
+
+                    <div className="mt-4 p-4 bg-red-500/10 rounded-lg text-sm text-center font-mono border border-red-500/20">
+                        <p>REQUIRED_ROLE: admin</p>
+                        <p>CURRENT_ROLE: {stats.role || "unknown"}</p>
+                        <p className="text-xs text-gray-500 mt-2">{stats.userId}</p>
+                    </div>
+
                     <Link href="/" className="mt-6 px-4 py-2 bg-white/10 rounded hover:bg-white/20 text-white">
                         Return to Base
                     </Link>
@@ -38,6 +45,7 @@ export default async function AdminDashboard() {
                 <AlertTriangle size={48} className="mb-4" />
                 <h1 className="text-2xl font-bold">SYSTEM OFFLINE</h1>
                 <p className="text-gray-400 mt-2">Unable to retrieve fleet telemetry.</p>
+                <p className="text-xs text-yellow-500/50 mt-2 font-mono">ERROR: {JSON.stringify(stats.details) || "Connection Failure"}</p>
             </div>
         )
     }

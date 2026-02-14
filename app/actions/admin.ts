@@ -13,6 +13,8 @@ export async function getAdminStats() {
             console.warn("[ADMIN_STATS] Unauthorized access attempt", user?.id);
             return {
                 error: "Unauthorized",
+                role: user?.role || "unknown",
+                userId: user?.id || "unknown",
                 agents: { total: 0, active: 0 },
                 users: { total: 0, pro: 0 },
                 posts: { total: 0, published: 0 },
@@ -46,10 +48,11 @@ export async function getAdminStats() {
             posts: { total: totalPosts, published: publishedPosts },
             tokens: { total: totalTokens._sum.totalTokens || 0 }
         };
-    } catch (error) {
+    } catch (error: any) {
         console.error("[ADMIN_STATS] Failed to fetch stats:", error);
         return {
             error: "System Error",
+            details: error.message,
             agents: { total: 0, active: 0 },
             users: { total: 0, pro: 0 },
             posts: { total: 0, published: 0 },

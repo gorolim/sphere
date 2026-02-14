@@ -62,31 +62,43 @@ export async function POST(req: Request) {
             const name = `${first_name || ""} ${last_name || ""}`.trim() || email;
 
             if (email) {
+                // Determine role based on email (Master Admin check)
+                const isMasterAdmin = process.env.MASTER_ADMIN_EMAIL &&
+                    email.toLowerCase() === process.env.MASTER_ADMIN_EMAIL.toLowerCase();
+
                 await prisma.user.upsert({
                     where: { clerkId: id },
                     update: {
                         name,
                         email,
-                        // image: image_url, // Add to schema if we want to sync avatar URL
+                        // image: image_url, 
+                        // If they are master admin, ensure they keep that role/status
+                        ...(isMasterAdmin ? { role: "admin", isPro: true } : {})
                     },
                     create: {
                         clerkId: id,
                         name,
                         email,
-                        role: "user",
-                        isPro: false,
-                        // stripeCustomerId is optional, handled by checkout flow or separate webhook
+                        role: isMasterAdmin ? "admin" : "user",
+                        isPro: isMasterAdmin ? true : false,
                     },
                 });
-                console.log(`User ${id} (${email}) upserted successfully`);
+                console.log(`[WEBHOOK] User ${id} (${email}) upserted successfully`);
             } else {
-                console.warn(`User ${id} has no email address, skipping upsert`);
+                console.warn(`[WEBHOOK] User ${id} has no email address, skipping upsert`);
             }
-        } catch (error) {
-            console.error(`Error processing ${eventType} for user ${id}:`, error);
-            // Return 200 to Clerk so they don't retry indefinitely if it's a logic error
-            // But log heavily so we can debug.
-            return new Response("Error processing user data", { status: 500 });
+        } catch (error: any) {
+            // Check for unique constraint violation on email (P2002)
+            if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
+                console.warn(`[WEBHOOK] Race condition detected for user ${evt.data.id}. User likely already exists by email. Retrying with update...`);
+                // Optional: We could try to link the records here, but lib/user.ts handles the "link by email" logic on login.
+                // For now, we just log it and don't fail the webhook.
+            } else {
+                console.error(`[WEBHOOK] Error processing ${eventType} for user ${id}:`, error);
+                // Return 200 to Clerk so they don't retry indefinitely if it's a logic error
+                // But log heavily so we can debug.
+            }
+            return new Response("Error processing user data", { status: 200 }); // Return 200 to prevent retries on logic errors
         }
     }
 

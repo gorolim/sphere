@@ -22,13 +22,13 @@ export default function SitemapPage() {
         { id: "blog", label: "Sphere Chronicles", href: "/blog", icon: <FileText />, type: "knowledge", x: 60, y: 60 },
 
         // Admin Cluster
-        { id: "admin", label: "Admin Console", href: "/admin", icon: <Layout />, type: "system", x: 50, y: 75 },
-        { id: "auto", label: "Automations", href: "/admin/automation", icon: <Workflow />, type: "system", x: 30, y: 85 },
-        { id: "fleet", label: "Agent Fleet", href: "/admin/agents", icon: <Users />, type: "system", x: 40, y: 90 },
-        { id: "intel", label: "Global Intel", href: "/admin/intelligence", icon: <Globe />, type: "system", x: 50, y: 95 },
-        { id: "health", label: "System Health", href: "/admin/system", icon: <Activity />, type: "system", x: 60, y: 90 },
-        { id: "sec", label: "Security", href: "/admin/security", icon: <Shield />, type: "system", x: 70, y: 85 },
-        { id: "set", label: "Settings", href: "/admin/settings", icon: <Settings />, type: "system", x: 50, y: 85 },
+        { id: "admin", label: "Admin Console", href: "/master-admin", icon: <Layout />, type: "system", x: 50, y: 75 },
+        { id: "auto", label: "Automations", href: "/master-admin/automation", icon: <Workflow />, type: "system", x: 30, y: 85 },
+        { id: "fleet", label: "Agent Fleet", href: "/master-admin/agents", icon: <Users />, type: "system", x: 40, y: 90 },
+        { id: "intel", label: "Global Intel", href: "/master-admin/intelligence", icon: <Globe />, type: "system", x: 50, y: 95 },
+        { id: "health", label: "System Health", href: "/master-admin/system", icon: <Activity />, type: "system", x: 60, y: 90 },
+        { id: "sec", label: "Security", href: "/master-admin/security", icon: <Shield />, type: "system", x: 70, y: 85 },
+        { id: "set", label: "Settings", href: "/master-admin/settings", icon: <Settings />, type: "system", x: 50, y: 85 },
     ];
 
     const connections = [

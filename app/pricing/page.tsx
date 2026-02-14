@@ -5,6 +5,8 @@ import { CheckCircle, XCircle, Radio, Database, PenTool, Zap, ArrowRight } from 
 import { checkSubscription } from "@/lib/subscription";
 import { currentUser } from "@clerk/nextjs/server";
 
+export const dynamic = "force-dynamic";
+
 export default async function PricingPage() {
     let isPro = false;
     let isLoggedIn = false;

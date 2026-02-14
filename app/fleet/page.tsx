@@ -6,27 +6,37 @@ import { Shield, AlertTriangle } from "lucide-react";
 import { currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/user";
 
 export const dynamic = "force-dynamic";
 
 export default async function FleetPage() {
-    const clerkUser = await currentUser();
-
-    if (!clerkUser) {
-        redirect("/sign-in");
+    let user = null;
+    try {
+        user = await getCurrentUser();
+    } catch (e) {
+        console.error("Fleet page user fetch error:", e);
     }
 
-    const user = await prisma.user.findUnique({
-        where: { clerkId: clerkUser.id }
-    });
-
     if (!user) {
-        // Handle case where user exists in Clerk but not DB (webhook lag?)
+        // Handle case where user exists in Clerk but not DB (webhook lag?) or not logged in
+        const clerkUser = await currentUser();
+        if (!clerkUser) redirect("/sign-in");
+
         return (
-            <div className="min-h-screen bg-engine-black text-white flex items-center justify-center font-mono">
+            <div className="min-h-screen bg-engine-black text-white flex flex-col items-center justify-center font-mono p-6 text-center">
                 <div className="text-center">
                     <h1 className="text-2xl mb-2 text-neon-cyan">INITIALIZING PROFILE...</h1>
-                    <p className="text-gray-400">Please refresh in a moment.</p>
+                    <p className="text-gray-400 mb-6">Synchronization in progress.</p>
+                    <button
+                        // @ts-ignore
+                        onClick={() => window.location.reload()}
+                        className="px-4 py-2 border border-white/20 hover:bg-white/10 rounded"
+                    >
+                        RETRY_UPLINK
+                    </button>
+                    {/* Fallback refresh */}
+                    <meta httpEquiv="refresh" content="3" />
                 </div>
             </div>
         );

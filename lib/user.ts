@@ -16,6 +16,12 @@ export async function getCurrentUser() {
             where: { clerkId: clerkUser.id }
         });
 
+        if (user) {
+            // console.log(`[GET_CURRENT_USER] Found user ${user.id} (${user.email})`);
+        } else {
+            console.warn(`[GET_CURRENT_USER] User ${clerkUser.id} not found in DB. Attempting sync.`);
+        }
+
         // ------------------------------------------------------------------
         // SELF-HEALING: If user exists in Clerk but not in DB, create them.
         // This handles cases where webhooks failed or were missed.

@@ -13,7 +13,16 @@ export async function POST(req: NextRequest) {
         const user = await getCurrentUser();
 
         if (!user || !user.email) {
-            console.error(`[STRIPE_CHECKOUT] Unauthorized. User: ${!!user}, Email: ${user?.email}`);
+            // Check if we have a clerk user but no DB user
+            const { currentUser } = await import("@clerk/nextjs/server");
+            const clerkUser = await currentUser();
+
+            console.error(`[STRIPE_CHECKOUT] Unauthorized. DB User: ${!!user}, Clerk User: ${!!clerkUser}`);
+
+            if (clerkUser && !user) {
+                return NextResponse.json({ message: "Sync Error: User authenticated but not found in database. Please refresh." }, { status: 500 });
+            }
+
             return NextResponse.json({ message: "Unauthorized: User not found or missing email" }, { status: 401 });
         }
 

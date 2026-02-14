@@ -5,7 +5,19 @@ import { getAdminStats } from "@/app/actions/admin";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
-    const stats = await getAdminStats();
+    let stats = {
+        agents: { total: 0, active: 0 },
+        users: { total: 0, pro: 0 },
+        posts: { total: 0, published: 0 },
+        tokens: { total: 0 }
+    };
+
+    try {
+        stats = await getAdminStats();
+    } catch (e) {
+        console.error("Admin stats failed:", e);
+        // We will show a degraded UI instead of crashing
+    }
 
     return (
         <div>

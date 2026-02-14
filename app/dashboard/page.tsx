@@ -1,5 +1,6 @@
+import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
-import { Zap, Bot, Activity, Box } from "lucide-react";
+import { Zap, Bot, Activity, Box, Loader2 } from "lucide-react";
 import { getCurrentUser } from "@/lib/user";
 import { redirect } from "next/navigation";
 
@@ -9,6 +10,21 @@ export default async function DashboardPage() {
     const user = await getCurrentUser();
 
     if (!user) {
+        // Check if logged in via Clerk but not synced to DB yet
+        const clerkUser = await currentUser();
+        if (clerkUser) {
+            return (
+                <div className="min-h-screen bg-engine-black text-white flex flex-col items-center justify-center p-6">
+                    <Loader2 className="w-12 h-12 text-neon-cyan animate-spin mb-4" />
+                    <h1 className="text-2xl font-display font-bold mb-2">Establishing Uplink...</h1>
+                    <p className="text-gray-400 text-center max-w-md mb-8">
+                        Your neural link is active, but we are still synchronizing your profile with The Hive.
+                        This should only take a moment.
+                    </p>
+                    <meta httpEquiv="refresh" content="2" />
+                </div>
+            );
+        }
         redirect("/sign-in");
     }
 

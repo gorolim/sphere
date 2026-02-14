@@ -2,13 +2,16 @@ import { currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
 export async function getCurrentUser() {
-    const clerkUser = await currentUser();
-
-    if (!clerkUser) {
-        return null;
-    }
-
     try {
+        const clerkUser = await currentUser();
+
+        if (!clerkUser) {
+            return null;
+        }
+
+        const email = clerkUser.emailAddresses[0]?.emailAddress;
+
+        // Optimize: Check DB for user
         let user = await prisma.user.findUnique({
             where: { clerkId: clerkUser.id }
         });
@@ -19,24 +22,41 @@ export async function getCurrentUser() {
         // ------------------------------------------------------------------
         if (!user) {
             console.log(`[AUTH_SYNC] Cloud user ${clerkUser.id} missing in DB. Syncing now...`);
-            const email = clerkUser.emailAddresses[0]?.emailAddress;
-            const name = `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || email || "Unknown Agent";
 
             if (email) {
-                user = await prisma.user.create({
-                    data: {
-                        clerkId: clerkUser.id,
-                        email,
-                        name,
-                        role: "user",
-                        isPro: false,
-                        // image: clerkUser.imageUrl, // Optional: add if schema supports it
-                    }
-                });
-                console.log(`[AUTH_SYNC] User ${user.id} synced successfully.`);
+                // Check for Master Admin override
+                const isMasterAdmin = process.env.MASTER_ADMIN_EMAIL &&
+                    email.toLowerCase() === process.env.MASTER_ADMIN_EMAIL.toLowerCase();
+
+                const name = `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || email.split('@')[0] || "Unknown Agent";
+
+                try {
+                    user = await prisma.user.create({
+                        data: {
+                            clerkId: clerkUser.id,
+                            email,
+                            name,
+                            role: isMasterAdmin ? "admin" : "user",
+                            isPro: isMasterAdmin ? true : false,
+                        }
+                    });
+                    console.log(`[AUTH_SYNC] User ${user.id} synced successfully. Role: ${user.role}`);
+                } catch (createError) {
+                    console.error(`[AUTH_SYNC] Failed to create user ${clerkUser.id}:`, createError);
+                    // Double check if it was created in parallel
+                    user = await prisma.user.findUnique({
+                        where: { clerkId: clerkUser.id }
+                    });
+                }
             } else {
                 console.error(`[AUTH_SYNC] User ${clerkUser.id} has no email. Cannot sync.`);
             }
+        }
+
+        // FAIL-SAFE: If user is still null after sync attempt
+        if (!user) {
+            console.error(`[AUTH_SYNC] Critical: User still null after sync attempt for ${clerkUser.id}`);
+            return null;
         }
 
         return user;

@@ -37,15 +37,32 @@ export async function getCurrentUser() {
                 const name = `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || email.split('@')[0] || "Unknown Agent";
 
                 try {
-                    user = await prisma.user.create({
-                        data: {
-                            clerkId: clerkUser.id,
-                            email,
-                            name,
-                            role: isMasterAdmin ? "admin" : "user",
-                            isPro: isMasterAdmin ? true : false,
-                        }
+                    // Check if user exists by email (to avoid unique constraint errors if clerkId changed)
+                    const existingUser = await prisma.user.findUnique({
+                        where: { email }
                     });
+
+                    if (existingUser) {
+                        console.log(`[AUTH_SYNC] User found by email ${email} but clerkId mismatch. Updating clerkId.`);
+                        user = await prisma.user.update({
+                            where: { id: existingUser.id },
+                            data: {
+                                clerkId: clerkUser.id,
+                                // Ensure name is up to date if missing
+                                name: existingUser.name || name
+                            }
+                        });
+                    } else {
+                        user = await prisma.user.create({
+                            data: {
+                                clerkId: clerkUser.id,
+                                email,
+                                name,
+                                role: isMasterAdmin ? "admin" : "user",
+                                isPro: isMasterAdmin ? true : false,
+                            }
+                        });
+                    }
                     console.log(`[AUTH_SYNC] User ${user.id} synced successfully. Role: ${user.role}`);
                 } catch (createError) {
                     console.error(`[AUTH_SYNC] Failed to create user ${clerkUser.id}:`, createError);

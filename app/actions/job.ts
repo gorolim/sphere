@@ -2,6 +2,7 @@
 
 import { prisma as db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
+import { scrapeAllSites } from "@/lib/scraper";
 
 const DEFAULT_KEYWORDS = [
   "RLHF", "AI Tutor", "Data Annotation", "Labeling", "Red Teaming", 
@@ -63,18 +64,12 @@ export async function fetchAndSyncJobs() {
             ? settings.excludedKeywords 
             : ["us only", "us-only", "requires us work authorization", "us visa", "united states only"];
 
-        const response = await fetch("https://remotive.com/api/remote-jobs");
-        if (!response.ok) {
-           return { error: "Failed to fetch from Remotive API" };
-        }
-        
-        const data = await response.json();
-        const jobs = data.jobs || [];
+        const allScrapedJobs = await scrapeAllSites();
 
         let newJobsAdded = 0;
 
-        for (const job of jobs) {
-            const location = (job.candidate_required_location || "").toLowerCase();
+        for (const job of allScrapedJobs) {
+            const location = (job.location || "").toLowerCase();
             const locationValid = validLocations.some(loc => location.includes(loc.toLowerCase()));
             
             const titleAndDescription = ((job.title || "") + " " + (job.description || "")).toLowerCase();
@@ -93,7 +88,7 @@ export async function fetchAndSyncJobs() {
                     await db.job.create({
                         data: {
                             title: job.title,
-                            company: job.company_name,
+                            company: job.company,
                             url: job.url,
                             keywords: matchedKeywords,
                             status: "discovered",

@@ -95,10 +95,13 @@ export default async function DashboardPage() {
                             </div>
 
                             <div className="mt-8">
-                                <button className="bg-neon-cyan text-black font-bold py-3 px-6 rounded-xl hover:bg-neon-cyan/80 transition-colors flex items-center gap-2">
+                                <Link
+                                    href="/automation"
+                                    className="bg-neon-cyan text-black font-bold py-3 px-6 rounded-xl hover:bg-neon-cyan/80 transition-colors flex items-center gap-2 inline-flex"
+                                >
                                     <Bot size={18} />
                                     CONFIGURE AUTOMATION
-                                </button>
+                                </Link>
                             </div>
                         </div>
 

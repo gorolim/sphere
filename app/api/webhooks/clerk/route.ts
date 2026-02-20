@@ -84,6 +84,17 @@ export async function POST(req: Request) {
                     },
                 });
                 console.log(`[WEBHOOK] User ${id} (${email}) upserted successfully`);
+
+                // Fire n8n automation for new user signup
+                if (eventType === "user.created") {
+                    const { triggerAutomation } = await import("@/lib/automation");
+                    await triggerAutomation("USER_SIGNUP", {
+                        id,
+                        email,
+                        name,
+                        role: isMasterAdmin ? "admin" : "user"
+                    });
+                }
             } else {
                 console.warn(`[WEBHOOK] User ${id} has no email address, skipping upsert`);
             }

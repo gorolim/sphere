@@ -107,3 +107,21 @@ model Automation {
 
   @@index([userId])
 }
+
+model Job {
+  id        String   @id @default(cuid())
+  title     String
+  company   String
+  url       String
+  keywords  String[]
+  status    String   @default("discovered") // e.g. "discovered", "toApply", "applied"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isHidden  Boolean  @default(false)
+}
+
+model JobSettings {
+  id             String   @id @default(cuid())
+  customKeywords String[] // Array of user-added keywords
+  updatedAt      DateTime @updatedAt
+}

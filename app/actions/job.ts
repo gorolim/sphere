@@ -1,7 +1,9 @@
 "use server";
 
 import { prisma as db } from "@/lib/db";
-import { auth } from "@clerk/nextjs/server";const DEFAULT_KEYWORDS = [
+import { auth } from "@clerk/nextjs/server";
+
+const DEFAULT_KEYWORDS = [
   "RLHF", "AI Tutor", "Data Annotation", "Labeling", "Red Teaming", 
   "Adversarial Testing", "Prompt Engineering", "Search Quality Rater", 
   "Ads Assessment", "Dataset Curation", "Phonetic Transcription", 

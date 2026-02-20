@@ -1,8 +1,0 @@
-[build]
-builder = "nixpacks"
-buildCommand = "npm run build"
-
-[deploy]
-startCommand = "node .next/standalone/server.js"
-restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 10

@@ -14,6 +14,7 @@ import {
     ChevronLeft,
     ChevronRight,
     Clapperboard,
+    Briefcase
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -31,6 +32,7 @@ export default function AdminSidebar({ collapsed, toggleCollapse }: AdminSidebar
         { name: "Agent Fleet", href: "/master-admin/agents", icon: <Users size={20} /> },
         { name: "Global Intel", href: "/master-admin/intelligence", icon: <Globe size={20} /> },
         { name: "System Health", href: "/master-admin/system", icon: <Activity size={20} /> },
+        { name: "Job Tracker", href: "/master-admin/job-tracker", icon: <Briefcase size={20} /> },
         { name: "Security", href: "/master-admin/security", icon: <Shield size={20} /> },
         { name: "Settings", href: "/master-admin/settings", icon: <Settings size={20} /> },
     ];

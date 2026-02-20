@@ -63,7 +63,7 @@ export async function fetchAndSyncJobs() {
             ? settings.excludedKeywords 
             : ["us only", "us-only", "requires us work authorization", "us visa", "united states only"];
 
-        const response = await fetch("https://remotive.com/api/remote-jobs?category=software-dev,data,writing");
+        const response = await fetch("https://remotive.com/api/remote-jobs");
         if (!response.ok) {
            return { error: "Failed to fetch from Remotive API" };
         }

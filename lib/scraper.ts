@@ -1,4 +1,5 @@
 // lib/scraper.ts
+import * as cheerio from 'cheerio';
 
 export interface ScrapedJob {
     title: string;
@@ -24,6 +25,9 @@ export async function scrapeAllSites(): Promise<ScrapedJob[]> {
         
         const remotiveJobs = await fetchRemotive();
         allJobs.push(...remotiveJobs);
+        
+        const oneformaJobs = await fetchOneForma();
+        allJobs.push(...oneformaJobs);
 
         console.log(`Scraper Service completed. Total raw jobs fetched: ${allJobs.length}`);
     } catch (e) {
@@ -68,6 +72,42 @@ async function fetchJobicy(): Promise<ScrapedJob[]> {
         }));
     } catch (e) {
         console.error("Jobicy fetch failed", e);
+        return [];
+    }
+}
+
+async function fetchOneForma(): Promise<ScrapedJob[]> {
+    try {
+        console.log("Fetching OneForma HTML...");
+        const res = await fetch("https://www.oneforma.com/jobs/", {
+            headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
+        });
+        const text = await res.text();
+        const $ = cheerio.load(text);
+        
+        const jobs: ScrapedJob[] = [];
+        
+        $('a[href*="/jobs/"]').each((i, el) => {
+            const rawText = $(el).text().trim().replace(/\s+/g, ' ');
+            const href = $(el).attr('href') || "";
+            
+            // Filter out pagination links and UI buttons
+            if (rawText && rawText.length > 15 && !rawText.toLowerCase().includes('read more') && !href.includes('/page/')) {
+                if(!jobs.some(j => j.url === href)) {
+                    jobs.push({
+                        title: rawText.substring(0, 80) + "...", // The text includes the description, so we use it as the title and description
+                        company: "OneForma",
+                        url: href,
+                        description: rawText,
+                        location: "Worldwide / Remote"
+                    });
+                }
+            }
+        });
+        
+        return jobs;
+    } catch (e) {
+        console.error("OneForma fetch failed", e);
         return [];
     }
 }

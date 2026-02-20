@@ -121,7 +121,9 @@ model Job {
 }
 
 model JobSettings {
-  id             String   @id @default(cuid())
-  customKeywords String[] // Array of user-added keywords
-  updatedAt      DateTime @updatedAt
+  id               String   @id @default(cuid())
+  customKeywords   String[] // Array of user-added keywords
+  locations        String[] @default(["remote", "worldwide", "anywhere", "global", "latam", "americas"])
+  excludedKeywords String[] @default(["us only", "us-only", "requires us work authorization", "us visa", "united states only"])
+  updatedAt        DateTime @updatedAt
 }

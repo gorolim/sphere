@@ -53,6 +53,15 @@ export async function fetchAndSyncJobs() {
         const settings = await db.jobSettings.findFirst();
         const customKeywords = settings?.customKeywords || [];
         const allKeywords = [...DEFAULT_KEYWORDS, ...customKeywords];
+        
+        // Use DB lists if they exist, otherwise fallback to defaults
+        const validLocations = settings?.locations?.length 
+            ? settings.locations 
+            : ["remote", "worldwide", "anywhere", "global", "latam", "americas"];
+            
+        const excludedTerms = settings?.excludedKeywords?.length 
+            ? settings.excludedKeywords 
+            : ["us only", "us-only", "requires us work authorization", "us visa", "united states only"];
 
         const response = await fetch("https://remotive.com/api/remote-jobs?category=software-dev,data,writing");
         if (!response.ok) {
@@ -66,10 +75,10 @@ export async function fetchAndSyncJobs() {
 
         for (const job of jobs) {
             const location = (job.candidate_required_location || "").toLowerCase();
-            const locationValid = ["remote", "worldwide", "anywhere", "global", "latam", "americas"].some(loc => location.includes(loc));
+            const locationValid = validLocations.some(loc => location.includes(loc.toLowerCase()));
             
             const titleAndDescription = ((job.title || "") + " " + (job.description || "")).toLowerCase();
-            const hasExclusions = ["us only", "us-only", "requires us work authorization", "us visa", "united states only"].some(excl => titleAndDescription.includes(excl));
+            const hasExclusions = excludedTerms.some(excl => titleAndDescription.includes(excl.toLowerCase()));
 
             if (!locationValid || hasExclusions) continue;
 
@@ -133,16 +142,21 @@ export async function hideJob(jobId: string) {
     }
 }
 
-export async function getCustomKeywords() {
+export async function getJobSettings() {
     const settings = await db.jobSettings.findFirst();
-    return { data: settings?.customKeywords || [] };
+    return { 
+        data: {
+            customKeywords: settings?.customKeywords || [],
+            locations: settings?.locations || ["remote", "worldwide", "anywhere", "global", "latam", "americas"],
+            excludedKeywords: settings?.excludedKeywords || ["us only", "us-only", "requires us work authorization", "us visa", "united states only"]
+        }
+    };
 }
 
-export async function addCustomKeyword(keyword: string) {
+export async function updateSettingsArray(field: 'customKeywords' | 'locations' | 'excludedKeywords', items: string[]) {
     const { userId } = await auth();
     if (!userId) return { error: "Unauthorized" };
     
-    // Auth role check...
     const dbUser = await db.user.findUnique({
         where: { clerkId: userId },
     });
@@ -151,51 +165,21 @@ export async function addCustomKeyword(keyword: string) {
     try {
         const settings = await db.jobSettings.findFirst();
         if (settings) {
-            if (settings.customKeywords.includes(keyword)) {
-                return { success: true };
-            }
             await db.jobSettings.update({
                 where: { id: settings.id },
                 data: {
-                    customKeywords: {
-                        push: keyword
-                    }
+                    [field]: items
                 }
             });
         } else {
             await db.jobSettings.create({
                 data: {
-                    customKeywords: [keyword]
+                    [field]: items
                 }
             });
         }
         return { success: true };
     } catch (e) {
-        return { error: "Failed to add keyword" };
-    }
-}
-
-export async function removeCustomKeyword(keyword: string) {
-    const { userId } = await auth();
-    if (!userId) return { error: "Unauthorized" };
-    
-    const dbUser = await db.user.findUnique({
-        where: { clerkId: userId },
-    });
-    if (!dbUser || dbUser.role !== "admin") return { error: "Unauthorized" };
-
-    try {
-        const settings = await db.jobSettings.findFirst();
-        if (settings) {
-            await db.jobSettings.update({
-                where: { id: settings.id },
-                data: {
-                    customKeywords: settings.customKeywords.filter(k => k !== keyword)
-                }
-            });
-        }
-        return { success: true };
-    } catch (e) {
-        return { error: "Failed to remove keyword" };
+        return { error: "Failed to update settings" };
     }
 }

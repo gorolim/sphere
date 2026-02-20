@@ -1,4 +1,4 @@
-import { getJobs, getCustomKeywords } from "@/app/actions/job";
+import { getJobs, getJobSettings } from "@/app/actions/job";
 import { JobTracker } from "@/components/JobTracker/JobTracker";
 import { JobTrackerClientControls } from "@/components/JobTracker/JobTrackerClientControls";
 import { AlertTriangle, Briefcase, Plus } from "lucide-react";
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function JobTrackerPage() {
     const jobsRes = await getJobs();
-    const keywordsRes = await getCustomKeywords();
+    const settingsRes = await getJobSettings();
 
     if (jobsRes.error === "Unauthorized") {
         return (
@@ -20,7 +20,7 @@ export default async function JobTrackerPage() {
     }
 
     const initialJobs = jobsRes.data || [];
-    const customKeywords = keywordsRes.data || [];
+    const settings = settingsRes.data;
 
     return (
         <div className="flex flex-col h-[calc(100vh-8rem)]">
@@ -39,8 +39,8 @@ export default async function JobTrackerPage() {
                     <p className="text-gray-400 font-mono text-sm">// AGGREGATING_REMOTE_OPPORTUNITIES</p>
                 </div>
                 
-                {/* Client component for fetch button & keyword modal */}
-                <JobTrackerClientControls initialKeywords={customKeywords} />
+                {/* Client component for fetch button & settings modal */}
+                <JobTrackerClientControls initialSettings={settings} />
             </div>
 
             <div className="flex-1 overflow-hidden relative">

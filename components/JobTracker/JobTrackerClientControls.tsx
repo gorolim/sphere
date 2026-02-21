@@ -13,6 +13,12 @@ interface JobSettingsData {
     platforms: string[];
 }
 
+const AVAILABLE_PLATFORMS = [
+    "remotive", "jobicy", "oneforma", "greenhouse", "lever", "workable", 
+    "hiringcafe", "wttj", "vetto", "wellfound", "upwork", "alignerr", "turing", 
+    "dataannotation", "ashby", "breezyhr", "recruitee", "weworkremotely", "remoteok"
+];
+
 interface ClientControlsProps {
     initialSettings: JobSettingsData;
 }
@@ -117,7 +123,7 @@ export function JobTrackerClientControls({ initialSettings }: ClientControlsProp
                                 <Settings className="text-gray-400" size={18} />
                                 Job Crawler Settings
                             </h2>
-                            <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-white transition-colors">
+                            <button onClick={() => setIsModalOpen(false)} title="Close Settings" className="text-gray-500 hover:text-white transition-colors">
                                 <X size={20} />
                             </button>
                         </div>
@@ -264,30 +270,35 @@ export function JobTrackerClientControls({ initialSettings }: ClientControlsProp
                             {activeTab === 'platforms' && (
                                 <div>
                                     <p className="text-sm text-gray-400 mb-4 font-mono">
-                                        Add platforms that the scraper engine will target.
+                                        Select the job boards the engine will scrape.
                                     </p>
-                                    <form onSubmit={(e) => handleAddItem(e, 'platforms')} className="flex gap-2 mb-6">
-                                        <input
-                                            type="text"
-                                            value={newInputs.platforms}
-                                            onChange={(e) => setNewInputs(prev => ({...prev, platforms: e.target.value}))}
-                                            placeholder="e.g. greenhouse, lever..."
-                                            className="flex-1 bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-400"
-                                        />
-                                        <button type="submit" className="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors">
-                                            <Plus size={20} />
-                                        </button>
-                                    </form>
-                                    <div className="flex flex-wrap gap-2 max-h-[200px] overflow-y-auto pr-2">
-                                        {settings.platforms.length === 0 && <p className="text-sm text-gray-600 font-mono italic">No platforms targeted.</p>}
-                                        {settings.platforms.map(plat => (
-                                            <span key={plat} className="flex items-center gap-1.5 px-3 py-1 bg-green-400/10 border border-green-400/30 text-green-400 rounded-full text-sm font-mono shrink-0">
-                                                {plat}
-                                                <button onClick={() => handleRemoveItem('platforms', plat)} className="hover:text-white p-0.5 rounded-full hover:bg-white/10 transition-colors" title="Remove">
-                                                    <X size={12} />
-                                                </button>
-                                            </span>
-                                        ))}
+                                    <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2 pb-2">
+                                        {AVAILABLE_PLATFORMS.map(platform => {
+                                            const isEnabled = settings.platforms.includes(platform);
+                                            return (
+                                                <label 
+                                                    key={platform}
+                                                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors
+                                                        ${isEnabled ? 'bg-green-400/10 border-green-400/30' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
+                                                >
+                                                    <input 
+                                                        type="checkbox"
+                                                        className="w-4 h-4 rounded border-white/10 bg-black/50 text-green-400 focus:ring-green-400/50"
+                                                        checked={isEnabled}
+                                                        onChange={async (e) => {
+                                                            const newArray = e.target.checked 
+                                                                ? [...settings.platforms, platform]
+                                                                : settings.platforms.filter(p => p !== platform);
+                                                            setSettings(prev => ({...prev, platforms: newArray}));
+                                                            await updateSettingsArray('platforms', newArray);
+                                                        }}
+                                                    />
+                                                    <span className={`text-sm font-mono ${isEnabled ? 'text-green-400 font-bold' : 'text-gray-400'}`}>
+                                                        {platform}
+                                                    </span>
+                                                </label>
+                                            )
+                                        })}
                                     </div>
                                 </div>
                             )}

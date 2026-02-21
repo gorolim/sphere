@@ -130,15 +130,61 @@ async function fetchOneForma(): Promise<ScrapedJob[]> {
 }
 
 async function fetchGreenhouse(): Promise<ScrapedJob[]> {
-    // Strategy: Greenhouse boards are nested under boards.greenhouse.io
-    // Since we need a specific company, we'll return an empty array for now 
-    // to prevent crashes, as it requires a specific company board token (like scaleai)
-    return [];
+    // Strategy: Greenhouse provides a public JSON API for companies boards
+    const companies = ['scaleai', 'anthropic', 'openai'];
+    const jobs: ScrapedJob[] = [];
+    
+    for (const company of companies) {
+        try {
+            const res = await fetch(`https://boards-api.greenhouse.io/v1/boards/${company}/jobs`);
+            if (!res.ok) continue;
+            const data = await res.json();
+            
+            if (data && data.jobs) {
+                for (const j of data.jobs) {
+                    jobs.push({
+                        title: j.title || "",
+                        company: company.toUpperCase(),
+                        url: j.absolute_url || "",
+                        description: j.title || "", // Greenhouse requires a second API call for description, keeping it light
+                        location: (j.location?.name || "") + " Remote"
+                    });
+                }
+            }
+        } catch (e) {
+            console.error(`Greenhouse fetch failed for ${company}`, e);
+        }
+    }
+    return jobs;
 }
 
 async function fetchLever(): Promise<ScrapedJob[]> {
-    // Strategy: Lever jobs are at jobs.lever.co/{company}
-    return [];
+    // Strategy: Lever provides a public JSON API
+    const companies = ['surgeai', 'cohere'];
+    const jobs: ScrapedJob[] = [];
+    
+    for (const company of companies) {
+        try {
+            const res = await fetch(`https://api.lever.co/v0/postings/${company}?mode=json`);
+            if (!res.ok) continue;
+            const data = await res.json();
+            
+            if (Array.isArray(data)) {
+                for (const j of data) {
+                    jobs.push({
+                        title: j.text || "",
+                        company: company.toUpperCase(),
+                        url: j.hostedUrl || "",
+                        description: j.descriptionPlain || "",
+                        location: (j.categories?.location || "Remote")
+                    });
+                }
+            }
+        } catch (e) {
+             console.error(`Lever fetch failed for ${company}`, e);
+        }
+    }
+    return jobs;
 }
 
 async function fetchWorkable(): Promise<ScrapedJob[]> {
@@ -166,8 +212,40 @@ async function fetchWellfound(): Promise<ScrapedJob[]> {
 }
 
 async function fetchUpwork(): Promise<ScrapedJob[]> {
-    // Strategy: Upwork RSS Feed parsing can be implemented here.
-    return [];
+    // Strategy: Upwork RSS Feeds
+    const queries = ["AI+Training", "RLHF", "Data+Annotation", "Prompt+Engineering"];
+    const jobs: ScrapedJob[] = [];
+    
+    for (const query of queries) {
+        try {
+            const res = await fetch(`https://www.upwork.com/ab/feed/jobs/rss?q=${query}&sort=recency`, {
+                headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
+            });
+            if (!res.ok) continue;
+            
+            const text = await res.text();
+            const $ = cheerio.load(text, { xmlMode: true });
+            
+            $('item').each((i, el) => {
+                const title = $(el).find('title').text() || "";
+                const link = $(el).find('link').text() || "";
+                const description = $(el).find('description').text() || "";
+                
+                if(!jobs.some(j => j.url === link)) {
+                    jobs.push({
+                        title: title.replace(" - Upwork", ""),
+                        company: "Upwork Client",
+                        url: link,
+                        description: description.substring(0, 1000), // Keep it trim
+                        location: "Worldwide / Remote"
+                    });
+                }
+            });
+        } catch (e) {
+            console.error(`Upwork fetch failed for query ${query}`, e);
+        }
+    }
+    return jobs;
 }
 
 async function fetchAlignerr(): Promise<ScrapedJob[]> {

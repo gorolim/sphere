@@ -106,17 +106,6 @@ export async function fetchAndSyncJobs() {
                         }
                     });
                     newJobsAdded++;
-                } else if (existing.isHidden) {
-                    // User explicitly wants old/hidden jobs to reappear if they still exist on the board
-                    await db.job.update({
-                        where: { id: existing.id },
-                        data: {
-                            isHidden: false,
-                            status: "discovered", // reset status so it's fresh for them
-                            keywords: matchedKeywords
-                        }
-                    });
-                    newJobsAdded++;
                 }
             }
         }

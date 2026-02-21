@@ -137,7 +137,9 @@ export function EngineStormCanvas() {
     // Listen for fullscreen changes to update icon state
     useEffect(() => {
         const handleFullscreenChange = () => {
-            setIsFullscreen(!!document.fullscreenElement);
+            if (typeof document !== 'undefined') {
+                setIsFullscreen(!!document.fullscreenElement);
+            }
         };
         document.addEventListener('fullscreenchange', handleFullscreenChange);
         return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);

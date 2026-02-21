@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Activity, Brain, Server, AlertTriangle, Users, FileText } from "lucide-react";
 import { getAdminStats } from "@/app/actions/admin";
-import { MerlinNexus } from "@/components/Canvas/MerlinNexus";
+import { NovaChecklist } from "@/components/admin/NovaChecklist";
 import { SystemPulse } from "@/components/admin/SystemPulse";
+import { prisma } from "@/lib/db";
+import { getCurrentUser } from "@/lib/user";
 
 export const dynamic = "force-dynamic";
 
@@ -14,11 +16,24 @@ export default async function AdminDashboard() {
         tokens: { total: 0 }
     };
 
+    let baseUser = null;
     try {
         stats = await getAdminStats();
+        baseUser = await getCurrentUser();
     } catch (e) {
         console.error("Admin stats failed:", e);
         // We will show a degraded UI instead of crashing
+    }
+
+    // Fetch Database progression data for Nova Payload
+    let dbUser = null;
+    let workflows = [];
+    let badges = [];
+
+    if (baseUser) {
+        dbUser = await prisma.user.findUnique({ where: { id: baseUser.id } });
+        workflows = await prisma.agentWorkflow.findMany({ where: { userId: baseUser.id } });
+        badges = await prisma.badge.findMany({ orderBy: { createdAt: "desc" }});
     }
 
     // @ts-ignore - We know stats might have error, simpler than updating type definition everywhere right now
@@ -67,12 +82,12 @@ export default async function AdminDashboard() {
                 </div>
             </div>
 
-            {/* 3D Merlin Representation */}
+            {/* Phase 12: Nova Checklist Representation */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                <div className="md:col-span-1">
-                    <MerlinNexus />
-                </div>
                 <div className="md:col-span-2">
+                    {dbUser && <NovaChecklist user={dbUser} workflows={workflows} badges={badges} />}
+                </div>
+                <div className="md:col-span-1">
                     <SystemPulse />
                 </div>
             </div>

@@ -14,6 +14,7 @@ datasource db {
 model User {
   id        String   @id @default(cuid())
   clerkId   String   @unique // Link to Clerk User
+  username  String?  @unique // [PHASE 12] Custom handle e.g. @nova
   name      String?
   email     String   @unique
   role      String   @default("user") // "admin" | "user"
@@ -23,6 +24,14 @@ model User {
   stripeCustomerId String?       @unique
   subscription     Subscription?
   isPro            Boolean       @default(false)
+
+  // [PHASE 12: Real World Sandbox]
+  socialHandles Json?    // e.g., { twitter: "@user", github: "user" }
+  rawAboutMe    String?  @db.Text
+  aiAboutMe     String?  @db.Text
+  rawPortfolio  String?  @db.Text
+  aiPortfolio   String?  @db.Text
+  onboardingScore Int    @default(0) // 0 to 10 progression
 
   tokensUsed  TokenUsage[]
   automations Automation[]

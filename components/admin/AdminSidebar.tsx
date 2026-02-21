@@ -43,6 +43,7 @@ export default function AdminSidebar({ collapsed, toggleCollapse }: AdminSidebar
         { name: "Global Intel", href: "/master-admin/intelligence", icon: <Shield size={20} /> },
         { name: "The Pulse", href: "/master-admin/system", icon: <Activity size={20} /> },
         { name: "Configuration", href: "/master-admin/settings", icon: <Settings size={20} /> },
+        { name: "Profile (Nova)", href: "/master-admin/settings/profile", icon: <Settings size={20} /> },
     ];
 
     return (

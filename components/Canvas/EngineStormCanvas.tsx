@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Tldraw, useEditor } from "@tldraw/tldraw";
+import { Tldraw, useEditor, getSnapshot } from "@tldraw/tldraw";
 import "@tldraw/tldraw/tldraw.css";
 import { Maximize, Minimize, Save, Plus, Trash2, Edit2, Check, RefreshCw } from "lucide-react";
 import { getCanvasBoards, getCanvasState, createCanvasBoard, updateCanvasBoard, deleteCanvasBoard } from "@/app/actions/canvas";
@@ -12,8 +12,7 @@ function SaveButton({ boardId, title, isSaving, setIsSaving }: any) {
 
     const handleSave = async () => {
         setIsSaving(true);
-        // Get snapshot of the entire document
-        const snapshot = editor.store.getSnapshot();
+        const snapshot = getSnapshot(editor.store);
         const statePayload = { document: snapshot };
         
         await updateCanvasBoard(boardId, title, statePayload);
@@ -68,23 +67,22 @@ export function EngineStormCanvas() {
     };
 
     const loadBoardState = async (id: string, title: string) => {
-        setActiveBoardId(id);
-        setActiveTitle(title);
         const res = await getCanvasState(id);
         
         if (res.data) {
-            // Tldraw expects a specific format to hydrate, or null to start fresh
             const stateObj = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
             if (stateObj && stateObj.document) {
                 setInitialSnapshot(stateObj.document);
             } else {
-                setInitialSnapshot(null); // Fresh board
+                setInitialSnapshot(undefined); // Fresh board
             }
         } else {
-            setInitialSnapshot(null);
+            setInitialSnapshot(undefined);
         }
         
-        // Force remount of Tldraw to cleanly load the new snapshot without data mixing
+        // Now set the active board and mount Tldraw
+        setActiveBoardId(id);
+        setActiveTitle(title);
         setCanvasKey(prev => prev + 1);
     };
 
@@ -251,7 +249,6 @@ export function EngineStormCanvas() {
                         <Tldraw 
                             key={canvasKey}
                             snapshot={initialSnapshot}
-                            persistenceKey={null} // We handle DB persistence manually so we disable local storage persistence
                         />
                     ) : (
                         <div className="absolute inset-0 flex items-center justify-center text-gray-500 font-mono">

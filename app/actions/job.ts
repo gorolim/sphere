@@ -60,17 +60,28 @@ export async function fetchAndSyncJobs() {
             ? settings.locations 
             : ["remote", "worldwide", "anywhere", "global", "latam", "americas"];
             
+        const includeEmptyLocations = settings?.includeEmptyLocations ?? true;
+        const activePlatforms = settings?.platforms?.length 
+            ? settings.platforms 
+            : ["remotive", "jobicy", "oneforma", "greenhouse", "lever", "workable", "hiringcafe", "wttj", "vetto", "wellfound", "upwork", "alignerr", "turing"];
+
         const excludedTerms = settings?.excludedKeywords?.length 
             ? settings.excludedKeywords 
             : ["us only", "us-only", "requires us work authorization", "us visa", "united states only"];
 
-        const allScrapedJobs = await scrapeAllSites();
+        const allScrapedJobs = await scrapeAllSites(activePlatforms);
 
         let newJobsAdded = 0;
 
         for (const job of allScrapedJobs) {
-            const location = (job.location || "").toLowerCase();
-            const locationValid = validLocations.some(loc => location.includes(loc.toLowerCase()));
+            const location = (job.location || "").trim().toLowerCase();
+            
+            let locationValid = false;
+            if (location === "" && includeEmptyLocations) {
+                locationValid = true;
+            } else {
+                locationValid = validLocations.some(loc => location.includes(loc.toLowerCase()));
+            }
             
             const titleAndDescription = ((job.title || "") + " " + (job.description || "")).toLowerCase();
             const hasExclusions = excludedTerms.some(excl => titleAndDescription.includes(excl.toLowerCase()));
@@ -143,12 +154,14 @@ export async function getJobSettings() {
         data: {
             customKeywords: settings?.customKeywords || [],
             locations: settings?.locations || ["remote", "worldwide", "anywhere", "global", "latam", "americas"],
+            includeEmptyLocations: settings?.includeEmptyLocations ?? true,
+            platforms: settings?.platforms || ["remotive", "jobicy", "oneforma", "greenhouse", "lever", "workable", "hiringcafe", "wttj", "vetto", "wellfound", "upwork", "alignerr", "turing"],
             excludedKeywords: settings?.excludedKeywords || ["us only", "us-only", "requires us work authorization", "us visa", "united states only"]
         }
     };
 }
 
-export async function updateSettingsArray(field: 'customKeywords' | 'locations' | 'excludedKeywords', items: string[]) {
+export async function updateSettingsArray(field: 'customKeywords' | 'locations' | 'excludedKeywords' | 'platforms', items: string[]) {
     const { userId } = await auth();
     if (!userId) return { error: "Unauthorized" };
     
@@ -170,6 +183,37 @@ export async function updateSettingsArray(field: 'customKeywords' | 'locations' 
             await db.jobSettings.create({
                 data: {
                     [field]: items
+                }
+            });
+        }
+        return { success: true };
+    } catch (e) {
+        return { error: "Failed to update settings" };
+    }
+}
+
+export async function updateSettingsBoolean(field: 'includeEmptyLocations', value: boolean) {
+    const { userId } = await auth();
+    if (!userId) return { error: "Unauthorized" };
+    
+    const dbUser = await db.user.findUnique({
+        where: { clerkId: userId },
+    });
+    if (!dbUser || dbUser.role !== "admin") return { error: "Unauthorized" };
+
+    try {
+        const settings = await db.jobSettings.findFirst();
+        if (settings) {
+            await db.jobSettings.update({
+                where: { id: settings.id },
+                data: {
+                    [field]: value
+                }
+            });
+        } else {
+            await db.jobSettings.create({
+                data: {
+                    [field]: value
                 }
             });
         }

@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, RefreshCw, X, Search, MapPin, ShieldAlert, Settings } from "lucide-react";
-import { fetchAndSyncJobs, updateSettingsArray } from "@/app/actions/job";
+import { Server, Plus, RefreshCw, X, Search, MapPin, ShieldAlert, Settings } from "lucide-react";
+import { fetchAndSyncJobs, updateSettingsArray, updateSettingsBoolean } from "@/app/actions/job";
 import { useRouter } from "next/navigation";
 
 interface JobSettingsData {
     customKeywords: string[];
     locations: string[];
+    includeEmptyLocations: boolean;
     excludedKeywords: string[];
+    platforms: string[];
 }
 
 interface ClientControlsProps {
@@ -18,13 +20,13 @@ interface ClientControlsProps {
 export function JobTrackerClientControls({ initialSettings }: ClientControlsProps) {
     const [isFetching, setIsFetching] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'keywords' | 'locations' | 'exclusions'>('keywords');
+    const [activeTab, setActiveTab] = useState<'keywords' | 'locations' | 'exclusions' | 'platforms'>('keywords');
     
     // State lists
     const [settings, setSettings] = useState<JobSettingsData>(initialSettings);
     
     // Active input for each tab
-    const [newInputs, setNewInputs] = useState({ keywords: "", locations: "", exclusions: "" });
+    const [newInputs, setNewInputs] = useState({ keywords: "", locations: "", exclusions: "", platforms: "" });
     
     const router = useRouter();
 
@@ -48,9 +50,10 @@ export function JobTrackerClientControls({ initialSettings }: ClientControlsProp
         const fieldMap: Record<string, keyof JobSettingsData> = {
             keywords: 'customKeywords',
             locations: 'locations',
-            exclusions: 'excludedKeywords'
+            exclusions: 'excludedKeywords',
+            platforms: 'platforms'
         };
-        const field = fieldMap[tab];
+        const field = fieldMap[tab] as 'customKeywords' | 'locations' | 'excludedKeywords' | 'platforms';
 
         if (!value || settings[field].includes(value)) return;
         
@@ -69,14 +72,21 @@ export function JobTrackerClientControls({ initialSettings }: ClientControlsProp
         const fieldMap: Record<string, keyof JobSettingsData> = {
             keywords: 'customKeywords',
             locations: 'locations',
-            exclusions: 'excludedKeywords'
+            exclusions: 'excludedKeywords',
+            platforms: 'platforms'
         };
-        const field = fieldMap[tab];
+        const field = fieldMap[tab] as 'customKeywords' | 'locations' | 'excludedKeywords' | 'platforms';
 
-        const newArray = settings[field].filter(k => k !== itemToRemove);
+        const newArray = (settings[field] as string[]).filter(k => k !== itemToRemove);
         setSettings(prev => ({ ...prev, [field]: newArray }));
         
         await updateSettingsArray(field, newArray);
+    };
+
+    const handleToggleEmptyLocations = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const checked = e.target.checked;
+        setSettings(prev => ({ ...prev, includeEmptyLocations: checked }));
+        await updateSettingsBoolean('includeEmptyLocations', checked);
     };
 
     return (
@@ -123,13 +133,19 @@ export function JobTrackerClientControls({ initialSettings }: ClientControlsProp
                                 onClick={() => setActiveTab('locations')}
                                 className={`flex-1 flex justify-center items-center gap-2 py-3 text-sm font-bold transition-colors ${activeTab === 'locations' ? 'text-neon-cyan border-b-2 border-neon-cyan' : 'text-gray-500 hover:text-gray-300'}`}
                             >
-                                <MapPin size={16} /> Locations
+                                <MapPin size={16} /> Locs
                             </button>
                             <button 
                                 onClick={() => setActiveTab('exclusions')}
                                 className={`flex-1 flex justify-center items-center gap-2 py-3 text-sm font-bold transition-colors ${activeTab === 'exclusions' ? 'text-red-500 border-b-2 border-red-500' : 'text-gray-500 hover:text-gray-300'}`}
                             >
-                                <ShieldAlert size={16} /> Exclusions
+                                <ShieldAlert size={16} /> Exclude
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('platforms')}
+                                className={`flex-1 flex justify-center items-center gap-2 py-3 text-sm font-bold transition-colors ${activeTab === 'platforms' ? 'text-green-400 border-b-2 border-green-400' : 'text-gray-500 hover:text-gray-300'}`}
+                            >
+                                <Server size={16} /> Platforms
                             </button>
                         </div>
                         
@@ -172,6 +188,20 @@ export function JobTrackerClientControls({ initialSettings }: ClientControlsProp
                                     <p className="text-sm text-gray-400 mb-4 font-mono">
                                         The candidate location string required by the job must contain one of these phrases.
                                     </p>
+                                    
+                                    <div className="mb-4 flex items-center gap-2">
+                                        <input 
+                                            type="checkbox" 
+                                            id="includeEmptyLocations"
+                                            checked={settings.includeEmptyLocations}
+                                            onChange={handleToggleEmptyLocations}
+                                            className="w-4 h-4 rounded border-white/10 bg-black/50 text-neon-cyan focus:ring-neon-cyan/50"
+                                        />
+                                        <label htmlFor="includeEmptyLocations" className="text-sm text-white font-mono cursor-pointer">
+                                            Include jobs with empty locations
+                                        </label>
+                                    </div>
+
                                     <form onSubmit={(e) => handleAddItem(e, 'locations')} className="flex gap-2 mb-6">
                                         <input
                                             type="text"
@@ -222,6 +252,38 @@ export function JobTrackerClientControls({ initialSettings }: ClientControlsProp
                                             <span key={excl} className="flex items-center gap-1.5 px-3 py-1 bg-red-500/10 border border-red-500/30 text-red-400 rounded-full text-sm font-mono shrink-0">
                                                 {excl}
                                                 <button onClick={() => handleRemoveItem('exclusions', excl)} className="hover:text-white p-0.5 rounded-full hover:bg-white/10 transition-colors" title="Remove">
+                                                    <X size={12} />
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Platforms Tab */}
+                            {activeTab === 'platforms' && (
+                                <div>
+                                    <p className="text-sm text-gray-400 mb-4 font-mono">
+                                        Add platforms that the scraper engine will target.
+                                    </p>
+                                    <form onSubmit={(e) => handleAddItem(e, 'platforms')} className="flex gap-2 mb-6">
+                                        <input
+                                            type="text"
+                                            value={newInputs.platforms}
+                                            onChange={(e) => setNewInputs(prev => ({...prev, platforms: e.target.value}))}
+                                            placeholder="e.g. greenhouse, lever..."
+                                            className="flex-1 bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-400"
+                                        />
+                                        <button type="submit" className="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors">
+                                            <Plus size={20} />
+                                        </button>
+                                    </form>
+                                    <div className="flex flex-wrap gap-2 max-h-[200px] overflow-y-auto pr-2">
+                                        {settings.platforms.length === 0 && <p className="text-sm text-gray-600 font-mono italic">No platforms targeted.</p>}
+                                        {settings.platforms.map(plat => (
+                                            <span key={plat} className="flex items-center gap-1.5 px-3 py-1 bg-green-400/10 border border-green-400/30 text-green-400 rounded-full text-sm font-mono shrink-0">
+                                                {plat}
+                                                <button onClick={() => handleRemoveItem('platforms', plat)} className="hover:text-white p-0.5 rounded-full hover:bg-white/10 transition-colors" title="Remove">
                                                     <X size={12} />
                                                 </button>
                                             </span>

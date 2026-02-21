@@ -13,21 +13,38 @@ export interface ScrapedJob {
  * The master scraping brain. 
  * Orchestrates calls to individual company adapters (e.g. Outlier, DataAnnotation).
  */
-export async function scrapeAllSites(): Promise<ScrapedJob[]> {
+export async function scrapeAllSites(activePlatforms: string[] = []): Promise<ScrapedJob[]> {
     const allJobs: ScrapedJob[] = [];
     
     try {
-        console.log("Starting unified Scraper Service...");
+        console.log(`Starting unified Scraper Service for platforms: ${activePlatforms.join(', ')}...`);
 
-        // Open APIs
-        const jobicyJobs = await fetchJobicy();
-        allJobs.push(...jobicyJobs);
-        
-        const remotiveJobs = await fetchRemotive();
-        allJobs.push(...remotiveJobs);
-        
-        const oneformaJobs = await fetchOneForma();
-        allJobs.push(...oneformaJobs);
+        const platformMap: Record<string, () => Promise<ScrapedJob[]>> = {
+            "jobicy": fetchJobicy,
+            "remotive": fetchRemotive,
+            "oneforma": fetchOneForma,
+            "greenhouse": fetchGreenhouse,
+            "lever": fetchLever,
+            "workable": fetchWorkable,
+            "hiringcafe": fetchHiringCafe,
+            "wttj": fetchWttj,
+            "vetto": fetchVetto,
+            "wellfound": fetchWellfound,
+            "upwork": fetchUpwork,
+            "alignerr": fetchAlignerr,
+            "turing": fetchTuring,
+        };
+
+        for (const platform of activePlatforms) {
+            const fetchFn = platformMap[platform.toLowerCase()];
+            if (fetchFn) {
+                console.log(`Fetching from ${platform}...`);
+                const jobs = await fetchFn();
+                allJobs.push(...jobs);
+            } else {
+                console.warn(`Scraper for platform '${platform}' not found.`);
+            }
+        }
 
         console.log(`Scraper Service completed. Total raw jobs fetched: ${allJobs.length}`);
     } catch (e) {
@@ -110,4 +127,53 @@ async function fetchOneForma(): Promise<ScrapedJob[]> {
         console.error("OneForma fetch failed", e);
         return [];
     }
+}
+
+async function fetchGreenhouse(): Promise<ScrapedJob[]> {
+    // Strategy: Greenhouse boards are nested under boards.greenhouse.io
+    // Since we need a specific company, we'll return an empty array for now 
+    // to prevent crashes, as it requires a specific company board token (like scaleai)
+    return [];
+}
+
+async function fetchLever(): Promise<ScrapedJob[]> {
+    // Strategy: Lever jobs are at jobs.lever.co/{company}
+    return [];
+}
+
+async function fetchWorkable(): Promise<ScrapedJob[]> {
+    // Strategy: Workable aggregator APIs
+    return [];
+}
+
+async function fetchHiringCafe(): Promise<ScrapedJob[]> {
+    // Hiring.cafe is a heavily JS injected site. We safely return empty list 
+    // until headless browser scraping is set up via n8n.
+    return [];
+}
+
+async function fetchWttj(): Promise<ScrapedJob[]> {
+    // Welcome to the jungle has Algolia APIs.
+    return [];
+}
+
+async function fetchVetto(): Promise<ScrapedJob[]> {
+    return [];
+}
+
+async function fetchWellfound(): Promise<ScrapedJob[]> {
+    return [];
+}
+
+async function fetchUpwork(): Promise<ScrapedJob[]> {
+    // Strategy: Upwork RSS Feed parsing can be implemented here.
+    return [];
+}
+
+async function fetchAlignerr(): Promise<ScrapedJob[]> {
+    return [];
+}
+
+async function fetchTuring(): Promise<ScrapedJob[]> {
+    return [];
 }

@@ -29,6 +29,14 @@ export default function SitemapPage() {
         { id: "health", label: "System Health", href: "/master-admin/system", icon: <Activity />, type: "system", x: 60, y: 90 },
         { id: "sec", label: "Security", href: "/master-admin/security", icon: <Shield />, type: "system", x: 70, y: 85 },
         { id: "set", label: "Settings", href: "/master-admin/settings", icon: <Settings />, type: "system", x: 50, y: 85 },
+
+        // New Phase 6-9 Modules
+        { id: "camp", label: "Campaigns & PR", href: "/master-admin/mind/campaigns", icon: <Radio />, type: "system", x: 20, y: 75 },
+        { id: "world", label: "World Builder", href: "/master-admin/mind/world-builder", icon: <Workflow />, type: "system", x: 20, y: 85 },
+        { id: "spir-adm", label: "Sys: The Spirit", href: "/master-admin/spirit", icon: <Globe />, type: "system", x: 80, y: 75 },
+        { id: "yantra", label: "The Sri Yantra", href: "/master-admin/sri-yantra", icon: <Activity />, type: "system", x: 80, y: 85 },
+        { id: "mind-pub", label: "The Mind", href: "/mind", icon: <User />, type: "module", x: 30, y: 25 },
+        { id: "body-pub", label: "The Body", href: "/body", icon: <Globe />, type: "module", x: 70, y: 25 },
     ];
 
     const connections = [
@@ -43,7 +51,9 @@ export default function SitemapPage() {
 
         // Admin Cluster Connections
         ["admin", "auto"], ["admin", "fleet"], ["admin", "intel"],
-        ["admin", "health"], ["admin", "sec"], ["admin", "set"]
+        ["admin", "health"], ["admin", "sec"], ["admin", "set"],
+        ["admin", "camp"], ["admin", "world"], ["admin", "spir-adm"], ["admin", "yantra"],
+        ["root", "mind-pub"], ["root", "body-pub"]
     ];
 
     return (

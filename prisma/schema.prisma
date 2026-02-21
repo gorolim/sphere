@@ -129,3 +129,11 @@ model JobSettings {
   excludedKeywords      String[] @default(["us only", "us-only", "requires us work authorization", "us visa", "united states only"])
   updatedAt             DateTime @updatedAt
 }
+
+model CanvasBoard {
+  id        String   @id @default(cuid())
+  title     String   @default("Untitled Canvas")
+  state     Json     @default("{}") // Stores the tldraw snapshot
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -20,7 +20,6 @@
 }
 
 @keyframes pulse-glow {
-
   0%,
   100% {
     opacity: 1;
@@ -34,11 +33,24 @@
 }
 
 .tech-card {
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 20px),
+    calc(100% - 20px) 100%,
+    0 100%
+  );
 }
 
 .hex-card-aggressive {
-  clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+  clip-path: polygon(
+    20px 0,
+    100% 0,
+    100% calc(100% - 20px),
+    calc(100% - 20px) 100%,
+    0 100%,
+    0 20px
+  );
 }
 
 body {
@@ -64,4 +76,9 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #00f3ff;
+}
+
+/* TLDraw Overrides */
+.tl-container {
+  --color-background: transparent !important;
 }

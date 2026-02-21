@@ -1,9 +1,4 @@
-import dynamic from "next/dynamic";
-
-const EngineStormCanvas = dynamic(
-    () => import("@/components/Canvas/EngineStormCanvas").then(mod => mod.EngineStormCanvas),
-    { ssr: false }
-);
+import { EngineStormCanvasNoSSR } from "@/components/Canvas/EngineStormCanvasNoSSR";
 
 export const metadata = {
     title: 'Engine-storm Canvas | Pathfinders Hub',
@@ -22,7 +17,7 @@ export default function EngineStormPage() {
                 </div>
             </div>
 
-            <EngineStormCanvas />
+            <EngineStormCanvasNoSSR />
         </div>
     );
 }

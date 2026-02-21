@@ -68,8 +68,13 @@ export default async function AdminDashboard() {
             </div>
 
             {/* 3D Merlin Representation */}
-            <div className="mb-12">
-                <MerlinNexus />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div className="md:col-span-1">
+                    <MerlinNexus />
+                </div>
+                <div className="md:col-span-2">
+                    <SystemPulse />
+                </div>
             </div>
 
             {/* KPI Grid */}

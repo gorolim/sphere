@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 function NovaAvatar() {
     const sphereRef = useRef<any>();
 
-    useFrame((state) => {
+    useFrame((state: any) => {
         if (sphereRef.current) {
             sphereRef.current.rotation.x = state.clock.getElapsedTime() * 0.2;
             sphereRef.current.rotation.y = state.clock.getElapsedTime() * 0.3;
@@ -42,31 +42,43 @@ export function FloatingCompanion({ user }: { user: any }) {
         { role: "nova", content: `I am ${user.guideName || 'Nova'}, your ${user.guideModel || 'infinite-memory'} Guide Companion. How can we optimize the Nexus today?` }
     ]);
     const [input, setInput] = useState("");
+    const [isTyping, setIsTyping] = useState(false);
 
-    const handleSend = () => {
-        if (!input.trim()) return;
+    const handleSend = async () => {
+        if (!input.trim() || isTyping) return;
 
         // Optimistic UI Update
         const newMsg = { role: "user" as const, content: input };
-        setMessages((prev) => [...prev, newMsg]);
+        const updatedMessages = [...messages, newMsg];
+        setMessages(updatedMessages);
         setInput("");
+        setIsTyping(true);
 
-        // Simulate AI Response based on 10-Phase Context
-        setTimeout(() => {
-            let response = "I have logged your request into the Mainframe memory.";
-            
-            if (input.toLowerCase().includes("phase") || input.toLowerCase().includes("step")) {
-                response = `You are currently at Onboarding Score Level ${user.onboardingScore}. Open the Success Formula on the dashboard to continue progression.`;
-            } else if (input.toLowerCase().includes("build") || input.toLowerCase().includes("agent")) {
-                response = "I am ready to help you architect new specialized agents. Let me analyze the current Job Tracking requirements...";
+        try {
+            const res = await fetch("/api/nova/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    messages: updatedMessages,
+                    userContext: user
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setMessages((prev) => [...prev, { role: "nova", content: data.response }]);
+            } else {
+                setMessages((prev) => [...prev, { role: "nova", content: "Mainframe Link Severed. Neural net offline." }]);
             }
-
-            setMessages((prev) => [...prev, { role: "nova", content: response }]);
-        }, 1000);
+        } catch(e) {
+            setMessages((prev) => [...prev, { role: "nova", content: "Comms interference. Re-establishing link." }]);
+        } finally {
+            setIsTyping(false);
+        }
     };
 
     return (
-        <div className="fixed bottom-6 right-6 z-[90] flex flex-col items-end">
+        <div className="fixed bottom-6 right-6 z-90 flex flex-col items-end">
             
             {/* The Chat Interface Panel */}
             <AnimatePresence>
@@ -107,6 +119,13 @@ export function FloatingCompanion({ user }: { user: any }) {
                                     </div>
                                 </div>
                             ))}
+                            {isTyping && (
+                                <div className="flex justify-start">
+                                    <div className="bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan px-4 py-3 rounded-2xl text-sm italic animate-pulse">
+                                         Processing Mainframe data...
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Input Area */}
@@ -123,6 +142,7 @@ export function FloatingCompanion({ user }: { user: any }) {
                                 <button 
                                     onClick={handleSend}
                                     disabled={!input.trim()}
+                                    title="Send Message"
                                     className="p-2 text-neon-cyan hover:bg-neon-cyan/20 rounded-lg transition-colors disabled:opacity-50"
                                 >
                                     <Send size={16} />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, Cpu, Sparkles, Wand2, Database, UploadCloud } from "lucide-react";
+import { User, Cpu, Sparkles, Wand2, Database, Network } from "lucide-react";
 import { initializeAgentCompanion } from "@/app/actions/agent";
 import { motion, AnimatePresence } from "framer-motion";
 

@@ -21,22 +21,31 @@ export default async function AdminLayout({
         where: { id: user.id }
     });
 
+    // Serialize Dates to prevent Client Component hydration crashes
+    // Use type assertion to bypass outdated Prisma client types in the Next.js cache
+    const safeUser = dbUser as any;
+    const serializedUser = safeUser ? {
+        ...safeUser,
+        createdAt: safeUser.createdAt?.toISOString() || new Date().toISOString(),
+        updatedAt: safeUser.updatedAt?.toISOString() || new Date().toISOString(),
+    } : null;
+
     return (
         <AdminShell>
-            {dbUser && !dbUser.hasGivenBirth && (
-                <GuideInitializationModal user={dbUser} />
+            {serializedUser && !serializedUser.hasGivenBirth && (
+                <GuideInitializationModal user={serializedUser} />
             )}
             
             <div className="absolute top-4 right-8 z-50">
-                {dbUser?.username && (
-                    <Link href={`/u/${dbUser.username}`} target="_blank" className="px-4 py-2 bg-engine-dark border border-white/20 rounded font-mono text-xs text-white hover:bg-white/10 hover:border-white/40 transition-colors shadow-lg">
+                {serializedUser?.username && (
+                    <Link href={`/u/${serializedUser.username}`} target="_blank" className="px-4 py-2 bg-engine-dark border border-white/20 rounded font-mono text-xs text-white hover:bg-white/10 hover:border-white/40 transition-colors shadow-lg">
                         [O] VIEW PUBLIC PROFILE
                     </Link>
                 )}
             </div>
             
-            {dbUser && dbUser.hasGivenBirth && (
-                <FloatingCompanion user={dbUser} />
+            {serializedUser && serializedUser.hasGivenBirth && (
+                <FloatingCompanion user={serializedUser} />
             )}
             
             {children}

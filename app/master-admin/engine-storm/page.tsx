@@ -1,4 +1,9 @@
-import { EngineStormCanvas } from "@/components/Canvas/EngineStormCanvas";
+import dynamic from "next/dynamic";
+
+const EngineStormCanvas = dynamic(
+    () => import("@/components/Canvas/EngineStormCanvas").then(mod => mod.EngineStormCanvas),
+    { ssr: false }
+);
 
 export const metadata = {
     title: 'Engine-storm Canvas | Pathfinders Hub',

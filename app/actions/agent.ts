@@ -24,13 +24,18 @@ export async function initializeAgentCompanion(data: {
     guidePrompt: string;
     guideModel: string;
 }) {
+    console.log("[initializeAgentCompanion] Start called with:", data);
     try {
+        console.log("[initializeAgentCompanion] Calling getCurrentUser...");
         const user = await getCurrentUser();
+        console.log("[initializeAgentCompanion] getCurrentUser returned:", user ? user.id : "null");
 
         if (!user) {
+            console.log("[initializeAgentCompanion] Unauthorized.");
             return { error: "Unauthorized" };
         }
 
+        console.log("[initializeAgentCompanion] Calling Prisma to update user:", user.id);
         const updated = await prisma.user.update({
             where: { id: user.id },
             data: {
@@ -38,15 +43,17 @@ export async function initializeAgentCompanion(data: {
                 guideName: data.guideName,
                 guidePrompt: data.guidePrompt,
                 guideModel: data.guideModel,
-            }
+            } as any
         });
+        console.log("[initializeAgentCompanion] Prisma updated successfully.");
 
-        // Force reload the admin layout to remove the blocker modal
+        console.log("[initializeAgentCompanion] Invoking revalidatePath...");
         revalidatePath("/master-admin");
+        console.log("[initializeAgentCompanion] revalidatePath complete.");
 
         return { success: true, user: updated };
     } catch (e: any) {
-        console.error("Agent initialization error:", e);
+        console.error("[initializeAgentCompanion] Catch block error:", e);
         return { error: "Failed to initialize the Companion." };
     }
 }

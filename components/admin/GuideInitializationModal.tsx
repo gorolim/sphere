@@ -18,18 +18,24 @@ export function GuideInitializationModal({ user }: { user: any }) {
         setStatus("saving");
         setErrorMsg("");
 
-        const res = await initializeAgentCompanion({
-            guideName: name,
-            guidePrompt: prompt,
-            guideModel: model
-        });
+        try {
+            const res = await initializeAgentCompanion({
+                guideName: name,
+                guidePrompt: prompt,
+                guideModel: model
+            });
 
-        if (res.error) {
+            if (res?.error) {
+                setStatus("error");
+                setErrorMsg(res.error);
+            } else {
+                setStatus("success");
+                // Page will revalidate and unmount this component
+            }
+        } catch (err: any) {
+            console.error("Client Error during initialization:", err);
             setStatus("error");
-            setErrorMsg(res.error);
-        } else {
-            setStatus("success");
-            // Page will revalidate and unmount this component
+            setErrorMsg("Network or Server error occurred during initialization.");
         }
     };
 

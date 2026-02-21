@@ -16,7 +16,7 @@ const containsKeyword = (text: string, keywords: string[]): string[] => {
 };
 
 async function testFiltering() {
-    console.log("Fetching from DB settings...");
+    console.log("Fetching DB settings...");
     try {
         const settings = await db.jobSettings.findFirst();
         const customKeywords = settings?.customKeywords || [];
@@ -28,27 +28,40 @@ async function testFiltering() {
             ? settings.locations 
             : ["remote", "worldwide", "anywhere", "global", "latam", "americas"];
             
+        const includeEmptyLocations = settings?.includeEmptyLocations ?? true;
+        const activePlatforms = settings?.platforms?.length 
+            ? settings.platforms 
+            : ["remotive", "jobicy", "oneforma", "greenhouse", "lever", "workable", "hiringcafe", "wttj", "vetto", "wellfound", "upwork", "alignerr", "turing", "dataannotation"];
+
         const excludedTerms = settings?.excludedKeywords?.length 
             ? settings.excludedKeywords 
             : ["us only", "us-only", "requires us work authorization", "us visa", "united states only"];
 
-        console.log(`Valid Locations Check: ${validLocations.join(', ')}`);
+        console.log(`Platforms to scrape: \n${activePlatforms.join(', ')}`);
         
-        const allScrapedJobs = await scrapeAllSites();
-        console.log(`Total Scraped Jobs BEFORE filtering: ${allScrapedJobs.length}`);
+        const allScrapedJobs = await scrapeAllSites(activePlatforms);
+        console.log(`\n==========================================`);
+        console.log(`Total RAW Jobs Found: ${allScrapedJobs.length}`);
+        console.log(`==========================================\n`);
 
         let passedLocation = 0;
         let passedExclusion = 0;
-        let matchedKeywordsCount = 0;
+        let finalJobsMatched = 0;
 
         for (const job of allScrapedJobs) {
-            const location = (job.location || "").toLowerCase();
-            const locationValid = validLocations.some(loc => location.includes(loc.toLowerCase()));
+            const location = (job.location || "").trim().toLowerCase();
+            
+            let locationValid = false;
+            if (location === "" && includeEmptyLocations) {
+                locationValid = true;
+            } else {
+                locationValid = validLocations.some(loc => location.includes(loc.toLowerCase()));
+            }
             
             if (locationValid) {
                 passedLocation++;
             } else {
-                continue; // Failed location
+                continue;
             }
             
             const titleAndDescription = ((job.title || "") + " " + (job.description || "")).toLowerCase();
@@ -57,38 +70,20 @@ async function testFiltering() {
             if (!hasExclusions) {
                 passedExclusion++;
             } else {
-                continue; // Hitting exclusion
+                continue;
             }
 
             const matchedKeywords = containsKeyword(titleAndDescription, allKeywords);
 
             if (matchedKeywords.length > 0) {
-                matchedKeywordsCount++;
+                finalJobsMatched++;
             }
         }
         
-        console.log(`\n--- RESULTS ---`);
-        console.log(`Jobs passing location check: ${passedLocation} drops ${(allScrapedJobs.length - passedLocation)}`);
-        console.log(`Jobs passing exclusion check after location: ${passedExclusion} drops ${(passedLocation - passedExclusion)}`);
-        console.log(`Jobs matching our expanded keywords after exclusions: ${matchedKeywordsCount} drops ${(passedExclusion - matchedKeywordsCount)}`);
-        
-        // Print 5 jobs that passed all checks up to keywords but failed keywords
-        let noKw = 0;
-        console.log(`\n--- EXAMPLES OF JOBS DROPPED BY KEYWORDS ---`);
-        for (const job of allScrapedJobs) {
-            const location = (job.location || "").toLowerCase();
-            const locationValid = validLocations.some(loc => location.includes(loc.toLowerCase()));
-            const titleAndDescription = ((job.title || "") + " " + (job.description || "")).toLowerCase();
-            const hasExclusions = excludedTerms.some(excl => titleAndDescription.includes(excl.toLowerCase()));
-            
-            if (locationValid && !hasExclusions) {
-                const matchedKeywords = containsKeyword(titleAndDescription, allKeywords);
-                if (matchedKeywords.length === 0 && noKw < 5) {
-                    console.log(`- ${job.title} (${job.company})`);
-                    noKw++;
-                }
-            }
-        }
+        console.log(`--- PIPELINE FUNNEL ---`);
+        console.log(`1. Jobs passing location check (Empty Allowed: ${includeEmptyLocations}): ${passedLocation} (Dropped ${allScrapedJobs.length - passedLocation})`);
+        console.log(`2. Jobs passing exclusion check: ${passedExclusion} (Dropped ${passedLocation - passedExclusion})`);
+        console.log(`3. FINAL JOBS saved to DB (Matching Keywords): ${finalJobsMatched} (Dropped ${passedExclusion - finalJobsMatched})`);
 
     } catch(e) {
         console.error(e);

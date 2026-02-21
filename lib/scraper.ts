@@ -132,7 +132,11 @@ async function fetchOneForma(): Promise<ScrapedJob[]> {
 
 async function fetchGreenhouse(): Promise<ScrapedJob[]> {
     // Strategy: Greenhouse provides a public JSON API for companies boards
-    const companies = ['scaleai', 'anthropic', 'openai'];
+    const companies = [
+        'scaleai', 'anthropic', 'openai', 'turing', 'nexus', 'labelbox', 
+        'stabilityai', 'mutiny', 'xai', 'coreweave', 'databricks', 
+        'descript', 'invisible'
+    ];
     const jobs: ScrapedJob[] = [];
     
     for (const company of companies) {
@@ -161,7 +165,10 @@ async function fetchGreenhouse(): Promise<ScrapedJob[]> {
 
 async function fetchLever(): Promise<ScrapedJob[]> {
     // Strategy: Lever provides a public JSON API
-    const companies = ['surgeai', 'cohere', 'welocalize', 'relay-commerce'];
+    const companies = [
+        'surgeai', 'cohere', 'welocalize', 'relay-commerce', 
+        'mistral', 'rws', 'appen'
+    ];
     const jobs: ScrapedJob[] = [];
     
     for (const company of companies) {

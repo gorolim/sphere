@@ -33,6 +33,7 @@ export async function scrapeAllSites(activePlatforms: string[] = []): Promise<Sc
             "upwork": fetchUpwork,
             "alignerr": fetchAlignerr,
             "turing": fetchTuring,
+            "dataannotation": fetchDataAnnotation,
         };
 
         for (const platform of activePlatforms) {
@@ -160,7 +161,7 @@ async function fetchGreenhouse(): Promise<ScrapedJob[]> {
 
 async function fetchLever(): Promise<ScrapedJob[]> {
     // Strategy: Lever provides a public JSON API
-    const companies = ['surgeai', 'cohere'];
+    const companies = ['surgeai', 'cohere', 'welocalize', 'relay-commerce'];
     const jobs: ScrapedJob[] = [];
     
     for (const company of companies) {
@@ -188,8 +189,34 @@ async function fetchLever(): Promise<ScrapedJob[]> {
 }
 
 async function fetchWorkable(): Promise<ScrapedJob[]> {
-    // Strategy: Workable aggregator APIs
-    return [];
+    // Strategy: Workable provides a public JSON API at /api/v3/accounts/{company}/jobs
+    const companies = ['darwin-ai'];
+    const jobs: ScrapedJob[] = [];
+    
+    for (const company of companies) {
+        try {
+            const res = await fetch(`https://apply.workable.com/api/v3/accounts/${company}/jobs`, {
+                headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
+            });
+            if (!res.ok) continue;
+            const data = await res.json();
+            
+            if (data && data.results) {
+                for (const j of data.results) {
+                    jobs.push({
+                        title: j.title || "",
+                        company: company.toUpperCase(),
+                        url: `https://apply.workable.com/${company}/j/${j.shortcode}/` || "",
+                        description: j.description || "",
+                        location: (j.location?.countryName || "Remote")
+                    });
+                }
+            }
+        } catch (e) {
+            console.error(`Workable fetch failed for ${company}`, e);
+        }
+    }
+    return jobs;
 }
 
 async function fetchHiringCafe(): Promise<ScrapedJob[]> {
@@ -254,4 +281,25 @@ async function fetchAlignerr(): Promise<ScrapedJob[]> {
 
 async function fetchTuring(): Promise<ScrapedJob[]> {
     return [];
+}
+
+async function fetchDataAnnotation(): Promise<ScrapedJob[]> {
+    // DataAnnotation primarily hires constantly through their main platform portals.
+    // They don't use a standard JSON-exposed job board.
+    return [
+        {
+            title: "AI Content Trainer (Remote)",
+            company: "DataAnnotation.Tech",
+            url: "https://www.dataannotation.tech/",
+            description: "Train AI models on conversational generation, creative writing, and factual verification. Flexible schedule.",
+            location: "Worldwide / Remote"
+        },
+        {
+            title: "Software Developer - AI Coding Trainer",
+            company: "DataAnnotation.Tech",
+            url: "https://www.dataannotation.tech/coders",
+            description: "Solve complex coding problems and write evaluations to train coding AI models. Proficiency in Python, JavaScript, etc. required.",
+            location: "Worldwide / Remote"
+        }
+    ];
 }

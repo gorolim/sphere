@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Cpu, Menu, Users, ShoppingBag, Radio, BookOpen, Command, FileText, Settings } from "lucide-react";
+import { Cpu, Menu, Users, ShoppingBag, Radio, BookOpen, Command, FileText, Settings, Brain, Sparkles, Globe } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import CommandPalette from "./CommandPalette";
@@ -26,13 +26,10 @@ export default function NavBar() {
                     {/* Desktop Menu */}
                     <div className="hidden md:block">
                         <div className="ml-10 flex items-baseline space-x-6">
-                            <NavLink href="/directory" icon={<Users size={16} />} label="Directory" />
+                            <NavLink href="/mind" icon={<Brain size={16} />} label="The Mind" />
+                            <NavLink href="/body" icon={<Globe size={16} />} label="The Body" />
+                            <NavLink href="/spirit" icon={<Sparkles size={16} />} label="The Spirit" />
                             <NavLink href="/agent-pedia" icon={<BookOpen size={16} />} label="Agent-Pedia" />
-                            <NavLink href="/fleet" icon={<Cpu size={16} />} label="My Fleet" />
-                            <NavLink href="/blog" icon={<FileText size={16} />} label="Chronicles" />
-                            <Link href="/arena" className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-bold bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/50 hover:bg-neon-cyan hover:text-black transition-all shadow-[0_0_10px_rgba(0,243,255,0.2)]">
-                                <Radio size={16} /> ARENA GIGS
-                            </Link>
                         </div>
                     </div>
 
@@ -92,11 +89,10 @@ export default function NavBar() {
                     className="md:hidden bg-engine-black border-b border-white/10"
                 >
                     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                        <MobileNavLink href="/directory" label="The Directory" />
+                        <MobileNavLink href="/mind" label="The Mind" />
+                        <MobileNavLink href="/body" label="The Body" />
+                        <MobileNavLink href="/spirit" label="The Spirit" />
                         <MobileNavLink href="/agent-pedia" label="Agent-Pedia" />
-                        <MobileNavLink href="/fleet" label="My Fleet" />
-                        <MobileNavLink href="/arena" label="Arena Gigs" />
-                        <MobileNavLink href="/blog" label="Sphere Chronicles" />
                         <MobileNavLink href="/settings" label="Neural Settings" />
 
                         <button className="w-full text-left mt-4 bg-engine-dark text-white font-mono px-4 py-3 rounded border border-neon-cyan/50">

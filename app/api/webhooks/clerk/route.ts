@@ -81,6 +81,13 @@ export async function POST(req: Request) {
                         email,
                         role: isMasterAdmin ? "admin" : "user",
                         isPro: isMasterAdmin ? true : false,
+                        personas: {
+                            create: [
+                                { archetype: "mind", name: "The Architect", bio: "Awakened logic and systems." },
+                                { archetype: "body", name: "The Traveler", bio: "Ready for the physical journey." },
+                                { archetype: "spirit", name: "The Techno-Shaman", bio: "Tuning into the frequencies." }
+                            ]
+                        }
                     },
                 });
                 console.log(`[WEBHOOK] User ${id} (${email}) upserted successfully`);

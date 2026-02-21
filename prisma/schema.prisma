@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
@@ -12,98 +12,115 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  clerkId       String    @unique // Link to Clerk User
-  name          String?
-  email         String    @unique
-  role          String    @default("user") // "admin" | "user"
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  stripeCustomerId String?   @unique
-  subscription   Subscription?
-  isPro          Boolean   @default(false)
-  
-  tokensUsed     TokenUsage[]
-  automations    Automation[]
+  id        String   @id @default(cuid())
+  clerkId   String   @unique // Link to Clerk User
+  name      String?
+  email     String   @unique
+  role      String   @default("user") // "admin" | "user"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stripeCustomerId String?       @unique
+  subscription     Subscription?
+  isPro            Boolean       @default(false)
+
+  tokensUsed  TokenUsage[]
+  automations Automation[]
+
+  // The 3 Personas
+  personas Persona[]
+
+  // Real-world entities
+  journeys JourneyEntry[]
+  artworks MarketplaceArt[]
+
+  // Mind entities
+  workflows AgentWorkflow[]
+  services  ServiceGig[]
+
+  // Master Narrative
+  campaigns MarketingCampaign[]
+
+  // Gamification
+  achievements UserAchievement[]
 }
 
 model Subscription {
-  id                 String   @id @default(cuid())
-  userId             String   @unique
-  user               User     @relation(fields: [userId], references: [id])
-  stripeCustomerId   String
-  stripeSubscriptionId String @unique
-  stripePriceId      String
-  status             String
-  currentPeriodEnd   DateTime
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id])
+  stripeCustomerId     String
+  stripeSubscriptionId String   @unique
+  stripePriceId        String
+  status               String
+  currentPeriodEnd     DateTime
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 model Agent {
-  id          String   @id @default(cuid())
-  slug        String   @unique // e.g., "market-researcher"
+  id          String  @id @default(cuid())
+  slug        String  @unique // e.g., "market-researcher"
   name        String
-  role        String   // e.g. "Analyst"
-  field       String   @default("General") // e.g. "Biology"
+  role        String // e.g. "Analyst"
+  field       String  @default("General") // e.g. "Biology"
   vibe        String?
   description String?
   avatar      String?
-  isActive    Boolean  @default(false) // [USER REQ]: Default false
-  isPublic    Boolean  @default(true)
-  
+  isActive    Boolean @default(false) // [USER REQ]: Default false
+  isPublic    Boolean @default(true)
+
   // Stats for the "Body Shop"
-  cpu         Int      @default(1)
-  ram         Int      @default(1)
-  
-  tokensUsed  TokenUsage[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  cpu Int @default(1)
+  ram Int @default(1)
+
+  tokensUsed TokenUsage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Post {
-  id        String   @id @default(cuid())
-  slug      String   @unique
-  title     String
-  content   String   // Markdown or HTML
-  excerpt   String?
-  category  String   // "chronicles" | "pedia" | "hive"
-  status    String   @default("draft") // [USER REQ]: "draft" | "published"
-  author    String?
-  
+  id       String  @id @default(cuid())
+  slug     String  @unique
+  title    String
+  content  String // Markdown or HTML
+  excerpt  String?
+  category String // "chronicles" | "pedia" | "hive"
+  status   String  @default("draft") // [USER REQ]: "draft" | "published"
+  author   String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model TokenUsage {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  agentId     String
-  agent       Agent    @relation(fields: [agentId], references: [id])
-  inputTokens Int
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  agentId      String
+  agent        Agent    @relation(fields: [agentId], references: [id])
+  inputTokens  Int
   outputTokens Int
-  totalTokens Int
-  timestamp   DateTime @default(now())
+  totalTokens  Int
+  timestamp    DateTime @default(now())
 
   @@index([userId])
   @@index([agentId])
 }
 
 model Automation {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   name        String
-  triggerType String   // "NEW_POST" | "USER_SIGNUP" | "AGENT_MESSAGE"
+  triggerType String // "NEW_POST" | "USER_SIGNUP" | "AGENT_MESSAGE"
   webhookUrl  String
-  isActive    Boolean  @default(true)
-  
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive    Boolean @default(true)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
 }
@@ -135,5 +152,213 @@ model CanvasBoard {
   title     String   @default("Untitled Canvas")
   state     Json     @default("{}") // Stores the tldraw snapshot
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ----------------------------------------------------------------------
+// ENUMS FOR AI AUTOMATION (OROBOROS PROTOCOL)
+// ----------------------------------------------------------------------
+
+enum AIProcessingStatus {
+  RAW_UPLOADED // Human just dropped the file
+  AI_PROCESSING // n8n is working on it
+  DRAFT_REVIEW // Ready for human approval
+  PUBLISHED // Live in the world
+  ARCHIVED
+}
+
+enum SyncStatus {
+  PENDING
+  SYNCED
+  FAILED
+}
+
+// ----------------------------------------------------------------------
+// THE CORE (MULTI-TENANT BASE)
+// ----------------------------------------------------------------------
+
+model Persona {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // E.g., "mind" (Architect), "body" (Traveler), "spirit" (Shaman)
+  archetype String
+
+  name      String
+  bio       String? @db.Text
+  avatarUrl String?
+
+  // AI Agent metadata
+  aiTone String? // Instructions for the agent writing for this persona
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, archetype])
+}
+
+// ----------------------------------------------------------------------
+// THE MIND (ARCHITECT / SYSTEMS)
+// ----------------------------------------------------------------------
+
+model AgentWorkflow {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String // e.g., "Storyteller Agent", "Marketplace Agent"
+  n8nWebhook  String // The URL n8n listens to
+  triggerType String // e.g., "ON_JOURNEY_UPLOAD", "ON_ART_UPLOAD"
+
+  isActive Boolean   @default(true)
+  lastRun  DateTime?
+
+  // Gamification stats
+  agentStat AgentStat?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ServiceGig {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String @db.Text
+  price       Float?
+
+  // Link this to the AI/Web3 Job Tracker skills later
+  skillsId String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ----------------------------------------------------------------------
+// THE BODY (TRAVELER / MAP)
+// ----------------------------------------------------------------------
+
+model JourneyEntry {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title       String? // Might be generated by AI
+  location    String?
+  latitude    Float?
+  longitude   Float?
+  journeyDate DateTime?
+
+  rawInput  String  @db.Text // What the human typed/uploaded
+  aiContent String? @db.Text // What the Agent wrote
+
+  mediaUrls String[] // Photos/Videos
+
+  status AIProcessingStatus @default(RAW_UPLOADED)
+
+  campaigns MarketingCampaign[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ----------------------------------------------------------------------
+// THE SPIRIT (TECHNO-SHAMAN / MARKETPLACE)
+// ----------------------------------------------------------------------
+
+model MarketplaceArt {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title     String?
+  rawVision String  @db.Text // Human inspiration note
+
+  description String? @db.Text // AI generated lore/sales copy
+  imageUrl    String
+
+  price    Float?
+  currency String @default("USD")
+
+  gumroadId          String?
+  openSeaUrl         String?
+  printfulSyncStatus SyncStatus @default(PENDING)
+
+  status     AIProcessingStatus @default(RAW_UPLOADED)
+  syncStatus SyncStatus         @default(PENDING) // Synced to Stripe/OpenSea/etc
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ----------------------------------------------------------------------
+// THE MASTER NARRATIVE (PUBLIC RELATIONS & MARKETING)
+// ----------------------------------------------------------------------
+
+model MarketingCampaign {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title       String
+  rawAudioUrl String?
+
+  status String @default("RAW_AUDIO") // RAW_AUDIO, AI_DRAFTING, READY_FOR_PR, SYNDICATED
+
+  // Relations
+  journeyId String?
+  journey   JourneyEntry? @relation(fields: [journeyId], references: [id])
+
+  // Social Links
+  twitterUrl  String?
+  linkedInUrl String?
+  igUrl       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ----------------------------------------------------------------------
+// THE ENDGAME (GAMIFICATION & MOLTGAME/COMMUNITY)
+// ----------------------------------------------------------------------
+
+model Badge {
+  id          String  @id @default(cuid())
+  name        String
+  description String  @db.Text
+  imageUrl    String?
+
+  achievements UserAchievement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserAchievement {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  badgeId String
+  badge   Badge  @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  unlockedAt DateTime @default(now())
+
+  @@unique([userId, badgeId])
+}
+
+model AgentStat {
+  id         String        @id @default(cuid())
+  workflowId String        @unique
+  workflow   AgentWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  health Int    @default(100)
+  level  Int    @default(1)
+  xp     Int    @default(0)
+  status String @default("HEALTHY") // HEALTHY, SICK, EVOLVING
+
   updatedAt DateTime @updatedAt
 }

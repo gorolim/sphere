@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Activity, Brain, Server, AlertTriangle, Users, FileText } from "lucide-react";
 import { getAdminStats } from "@/app/actions/admin";
+import { MerlinNexus } from "@/components/Canvas/MerlinNexus";
+import { SystemPulse } from "@/components/admin/SystemPulse";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +65,11 @@ export default async function AdminDashboard() {
                         SYSTEM_OPTIMAL
                     </span>
                 </div>
+            </div>
+
+            {/* 3D Merlin Representation */}
+            <div className="mb-12">
+                <MerlinNexus />
             </div>
 
             {/* KPI Grid */}

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+    CircleDollarSign,
     LayoutDashboard,
     Users,
     Settings,
@@ -15,7 +16,11 @@ import {
     ChevronRight,
     Clapperboard,
     Briefcase,
-    PenTool
+    PenTool,
+    Brain,
+    Sparkles,
+    RadioReceiver,
+    Hexagon
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -27,16 +32,17 @@ export default function AdminSidebar({ collapsed, toggleCollapse }: AdminSidebar
     const pathname = usePathname();
 
     const menuItems = [
-        { name: "Dashboard", href: "/master-admin", icon: <LayoutDashboard size={20} /> },
+        { name: "The Nexus", href: "/master-admin", icon: <LayoutDashboard size={20} /> },
+        { name: "The Mind", href: "/master-admin/mind", icon: <Brain size={20} /> },
+        { name: "PR & Campaigns", href: "/master-admin/mind/campaigns", icon: <RadioReceiver size={20} /> },
+        { name: "World Builder", href: "/master-admin/mind/world-builder", icon: <Hexagon size={20} /> },
+        { name: "The Body", href: "/master-admin/body", icon: <Globe size={20} /> },
+        { name: "The Spirit", href: "/master-admin/spirit", icon: <Sparkles size={20} /> },
+        { name: "The Sri Yantra", href: "/master-admin/sri-yantra", icon: <CircleDollarSign size={20} /> },
         { name: "Studio", href: "/master-admin/studio", icon: <Clapperboard size={20} /> },
-        { name: "Automations", href: "/master-admin/automation", icon: <Workflow size={20} /> },
-        { name: "Engine-storm", href: "/master-admin/engine-storm", icon: <PenTool size={20} /> },
-        { name: "Agent Fleet", href: "/master-admin/agents", icon: <Users size={20} /> },
-        { name: "Global Intel", href: "/master-admin/intelligence", icon: <Globe size={20} /> },
-        { name: "System Health", href: "/master-admin/system", icon: <Activity size={20} /> },
-        { name: "Job Tracker", href: "/master-admin/job-tracker", icon: <Briefcase size={20} /> },
-        { name: "Security", href: "/master-admin/security", icon: <Shield size={20} /> },
-        { name: "Settings", href: "/master-admin/settings", icon: <Settings size={20} /> },
+        { name: "Global Intel", href: "/master-admin/intelligence", icon: <Shield size={20} /> },
+        { name: "The Pulse", href: "/master-admin/system", icon: <Activity size={20} /> },
+        { name: "Configuration", href: "/master-admin/settings", icon: <Settings size={20} /> },
     ];
 
     return (

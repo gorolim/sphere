@@ -1,8 +1,11 @@
 "use client";
 
-import { CheckCircle2, Circle, Cpu, Fingerprint, Network, Radio, Link2, Sparkles, Workflow, ExternalLink } from "lucide-react";
+import { CheckCircle2, Circle, Cpu, Fingerprint, Network, Radio, Link2, Sparkles, Workflow, ExternalLink, Save } from "lucide-react";
 import Link from "next/link";
 import { User, AgentWorkflow, Badge } from "@prisma/client";
+import { useState } from "react";
+import { updateProfile } from "@/app/actions/profile";
+import { useRouter } from "next/navigation";
 
 interface NovaProps {
     user: any;
@@ -11,7 +14,30 @@ interface NovaProps {
 }
 
 export function NovaChecklist({ user, workflows, badges }: NovaProps) {
+    const router = useRouter();
     const score = user.onboardingScore || 0;
+    
+    // Inline state management
+    const [activePhase, setActivePhase] = useState<number | null>(null);
+    const [inputData, setInputData] = useState<any>({});
+    const [loading, setLoading] = useState(false);
+
+    const handleAction = async (phaseId: number) => {
+        setLoading(true);
+        try {
+            if (phaseId === 2) await updateProfile({ username: inputData.username });
+            if (phaseId === 3) await updateProfile({ socialHandles: { twitter: inputData.twitter, linkedin: inputData.linkedin } });
+            if (phaseId === 4) await updateProfile({ rawAboutMe: inputData.rawAboutMe });
+            if (phaseId === 5) await updateProfile({ rawPortfolio: inputData.rawPortfolio });
+            
+            setActivePhase(null);
+            router.refresh();
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Evaluate progression strictly
     const phases = [
@@ -115,11 +141,57 @@ export function NovaChecklist({ user, workflows, badges }: NovaProps) {
                                 <p className="text-sm text-gray-400 mt-1">{phase.desc}</p>
                                 
                                 {/* Action Buttons for Pending Phases */}
-                                {!phase.done && !phase.wait && !phase.auto && phase.id <= 5 && (
+                                {!phase.done && !phase.wait && !phase.auto && phase.id <= 5 && activePhase !== phase.id && (
                                     <div className="mt-3">
-                                        <Link href="/master-admin/settings/profile" className="px-3 py-1 bg-neon-purple/20 text-neon-purple rounded font-mono text-[10px] hover:bg-neon-purple/40 transition-colors">
-                                            CONFIGURE_PROFILE
-                                        </Link>
+                                        <button 
+                                            onClick={() => setActivePhase(phase.id)}
+                                            className="px-3 py-1 bg-neon-purple/20 text-neon-purple rounded font-mono text-[10px] hover:bg-neon-purple/40 transition-colors uppercase tracking-widest"
+                                        >
+                                            CONNECT_{phase.title.replace(/\s+/g, '_')}
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Expanded Inline Form */}
+                                {activePhase === phase.id && (
+                                    <div className="mt-4 p-4 bg-[#050510] border border-white/10 rounded-lg">
+                                        {phase.id === 2 && (
+                                            <input 
+                                                type="text" 
+                                                placeholder="e.g. nova" 
+                                                onChange={(e) => setInputData({...inputData, username: e.target.value})}
+                                                className="w-full bg-black border border-white/20 rounded px-3 py-2 text-sm text-white font-mono mb-3"
+                                            />
+                                        )}
+                                        {phase.id === 3 && (
+                                            <div className="space-y-2 mb-3">
+                                                <input type="text" placeholder="Twitter URL" onChange={(e) => setInputData({...inputData, twitter: e.target.value})} className="w-full bg-black border border-white/20 rounded px-3 py-2 text-sm text-white font-mono" />
+                                                <input type="text" placeholder="LinkedIn URL" onChange={(e) => setInputData({...inputData, linkedin: e.target.value})} className="w-full bg-black border border-white/20 rounded px-3 py-2 text-sm text-white font-mono" />
+                                            </div>
+                                        )}
+                                        {(phase.id === 4 || phase.id === 5) && (
+                                            <textarea 
+                                                placeholder={`Paste raw ${phase.id === 4 ? 'About Me' : 'Portfolio'} logs here...`}
+                                                onChange={(e) => setInputData({...inputData, [phase.id === 4 ? 'rawAboutMe' : 'rawPortfolio']: e.target.value})}
+                                                className="w-full h-32 bg-black border border-white/20 rounded px-3 py-2 text-sm text-white font-mono mb-3 resize-none"
+                                            />
+                                        )}
+                                        
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={() => handleAction(phase.id)}
+                                                disabled={loading}
+                                                className="px-4 py-2 bg-neon-cyan text-black font-bold text-xs rounded hover:bg-white transition-colors flex items-center gap-2"
+                                            >
+                                                {loading ? "TRANSMITTING..." : <><Save size={14}/> STORE IN MAINFRAME</>}
+                                            </button>
+                                            <button 
+                                                onClick={() => setActivePhase(null)}
+                                                className="px-4 py-2 border border-white/20 text-gray-400 font-bold text-xs rounded hover:bg-white/5 transition-colors"
+                                            >
+                                                CANCEL
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
                                 {!phase.done && !phase.wait && phase.id === 8 && (

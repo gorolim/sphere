@@ -33,6 +33,13 @@ model User {
   aiPortfolio   String?  @db.Text
   onboardingScore Int    @default(0) // 0 to 10 progression
 
+  // [PHASE 13: Nova/Guide Avatar Configuration]
+  hasGivenBirth  Boolean @default(false)
+  guideName      String  @default("Nova")
+  guidePrompt    String? @db.Text
+  guideModel     String  @default("gemini-3.1-pro-high")
+  guideImageUrl  String?
+
   tokensUsed  TokenUsage[]
   automations Automation[]
 

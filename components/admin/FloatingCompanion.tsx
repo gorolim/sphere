@@ -39,7 +39,7 @@ function NovaAvatar() {
 export function FloatingCompanion({ user }: { user: any }) {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<{ role: "user" | "nova"; content: string }[]>([
-        { role: "nova", content: `I am ${user.guideName || 'Nova'}, your ${user.guideModel || 'infinite-memory'} Guide Companion. How can we optimize the Nexus today?` }
+        { role: "nova", content: `I am ${user.guideName || 'Nova'}, your ${user.guideVibe || 'infinite-memory'} Guide Companion. How can we optimize the Nexus today?` }
     ]);
     const [input, setInput] = useState("");
     const [isTyping, setIsTyping] = useState(false);
@@ -98,7 +98,7 @@ export function FloatingCompanion({ user }: { user: any }) {
                                 </div>
                                 <div>
                                     <h3 className="text-white font-display font-bold uppercase tracking-widest text-sm">{user.guideName || "Nova"}</h3>
-                                    <p className="text-[10px] font-mono text-neon-cyan">ENGINE: {user.guideModel || 'GEMINI'}</p>
+                                    <p className="text-[10px] font-mono text-neon-cyan">TYPE: {user.guideType?.toUpperCase() || 'AVATAR'}</p>
                                 </div>
                             </div>
                             <button onClick={() => setIsOpen(false)} className="text-gray-500 hover:text-white transition-colors">

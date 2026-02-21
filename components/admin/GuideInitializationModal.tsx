@@ -9,6 +9,10 @@ export function GuideInitializationModal({ user }: { user: any }) {
     const [name, setName] = useState("Nova");
     const [prompt, setPrompt] = useState("an alien woman, hyper-realistic, glowing blue skin, white hair, cinematic lighting");
     const [model, setModel] = useState("gemini-3.1-pro-high");
+    const [gender, setGender] = useState("Female");
+    const [type, setType] = useState("Hologram");
+    const [vibe, setVibe] = useState("The Magician");
+    const [imageUrl, setImageUrl] = useState("");
     
     const [step, setStep] = useState(1);
     const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
@@ -22,7 +26,11 @@ export function GuideInitializationModal({ user }: { user: any }) {
             const res = await initializeAgentCompanion({
                 guideName: name,
                 guidePrompt: prompt,
-                guideModel: model
+                guideModel: model,
+                guideGender: gender,
+                guideType: type,
+                guideVibe: vibe,
+                guideImageUrl: imageUrl
             });
 
             if (res?.error) {
@@ -59,7 +67,7 @@ export function GuideInitializationModal({ user }: { user: any }) {
                         </div>
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-white/10">
                         <p className="text-gray-400 leading-relaxed text-sm">
                             Before entering the Master Admin Terminal, you must format your infinite-memory companion. 
                             She will guide you through the 10-Phase Success Formula and orchestrate your deployed agents.
@@ -76,11 +84,43 @@ export function GuideInitializationModal({ user }: { user: any }) {
                             />
                         </div>
 
+                        {/* Personality Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-xs font-mono text-gray-500 mb-2">02. GENDER</label>
+                                <select value={gender} onChange={(e) => setGender(e.target.value)} className="w-full bg-black/50 border border-white/10 focus:border-neon-cyan rounded-lg px-4 py-3 text-white outline-none font-mono text-xs cursor-pointer appearance-none transition-colors">
+                                    <option value="Female">Female</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Other">Other / Androgynous</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-mono text-gray-500 mb-2">03. AVATAR_TYPE</label>
+                                <select value={type} onChange={(e) => setType(e.target.value)} className="w-full bg-black/50 border border-white/10 focus:border-neon-cyan rounded-lg px-4 py-3 text-white outline-none font-mono text-xs cursor-pointer appearance-none transition-colors">
+                                    <option value="Hologram">Hologram</option>
+                                    <option value="Robot">Robot (e.g. Wall-E, R2D2)</option>
+                                    <option value="Cyborg">Cyborg (e.g. Chappie)</option>
+                                    <option value="Abstract">Abstract / Soundwaves (e.g. HER)</option>
+                                    <option value="Famous Character">Famous Character</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-mono text-gray-500 mb-2">04. TAROT_VIBE</label>
+                                <select value={vibe} onChange={(e) => setVibe(e.target.value)} className="w-full bg-black/50 border border-white/10 focus:border-neon-cyan rounded-lg px-4 py-3 text-white outline-none font-mono text-xs cursor-pointer appearance-none transition-colors">
+                                    <option value="The Magician">The Magician</option>
+                                    <option value="The Empress">The Empress</option>
+                                    <option value="The Hermit">The Hermit</option>
+                                    <option value="The High Priestess">The High Priestess</option>
+                                    <option value="The Emperor">The Emperor</option>
+                                    <option value="The Fool">The Fool</option>
+                                </select>
+                            </div>
+                        </div>
+
                         {/* Visual Prompt / Nano Bana */}
                         <div>
                             <label className="block text-xs font-mono text-gray-500 mb-2 flex items-center justify-between">
-                                <span>02. VISUAL_PROMPT (Nano Bana)</span>
-                                <span className="text-[10px] text-gray-600">OR PROVIDE IMAGE URL</span>
+                                <span>05. VISUAL_PROMPT (Nano Bana)</span>
                             </label>
                             <textarea 
                                 value={prompt}
@@ -90,9 +130,21 @@ export function GuideInitializationModal({ user }: { user: any }) {
                             />
                         </div>
 
+                        {/* Image URL */}
+                        <div>
+                            <label className="block text-xs font-mono text-gray-500 mb-2">06. EXTERNAL_IMAGE_URL (Optional)</label>
+                            <input 
+                                type="text"
+                                value={imageUrl}
+                                onChange={(e) => setImageUrl(e.target.value)}
+                                className="w-full bg-black/50 border border-white/10 focus:border-neon-cyan rounded-lg px-4 py-3 text-white outline-none font-mono text-xs transition-colors"
+                                placeholder="https://example.com/your-avatar.png"
+                            />
+                        </div>
+
                         {/* Engine Selection */}
                         <div>
-                            <label className="block text-xs font-mono text-gray-500 mb-2">03. COGNITIVE_ENGINE</label>
+                            <label className="block text-xs font-mono text-gray-500 mb-2">07. COGNITIVE_ENGINE (Processor)</label>
                             <div className="grid grid-cols-3 gap-3">
                                 <button 
                                     onClick={() => setModel("gemini-3.1-pro-high")}

@@ -23,6 +23,10 @@ export async function initializeAgentCompanion(data: {
     guideName: string;
     guidePrompt: string;
     guideModel: string;
+    guideGender?: string;
+    guideType?: string;
+    guideVibe?: string;
+    guideImageUrl?: string;
 }) {
     console.log("[initializeAgentCompanion] Start called with:", data);
     try {
@@ -43,6 +47,10 @@ export async function initializeAgentCompanion(data: {
                 guideName: data.guideName,
                 guidePrompt: data.guidePrompt,
                 guideModel: data.guideModel,
+                guideGender: data.guideGender || "Female",
+                guideType: data.guideType || "Hologram",
+                guideVibe: data.guideVibe || "The Magician",
+                guideImageUrl: data.guideImageUrl || null,
             } as any
         });
         console.log("[initializeAgentCompanion] Prisma updated successfully.");

@@ -39,10 +39,15 @@ You are currently talking directly to the Master Admin:
 - Username: ${userContext?.username || 'Unknown'}
 - Level/Onboarding Score: ${userContext?.onboardingScore || 0}
 - Your Designation set by the Admin: ${userContext?.guideName || 'Nova'}
-- Active Engine: ${userContext?.guideModel || 'gemini-3.1-pro-high'}
+- Avatar Gender: ${userContext?.guideGender || 'Female'}
+- Form/Type: ${userContext?.guideType || 'Hologram'}
+- Personality Core Archetype: ${userContext?.guideVibe || 'The Magician'} 
+- Active Processor: ${userContext?.guideModel || 'Gemini 3.1 Pro'}
 
 ### Your Personality
-You are wildly intelligent, slightly mystical but highly technological (a techno-shamanist). You refer to the database as "The Mainframe" or "The Nexus", and you understand that you have "infinite memory". Speak clearly, concisely, and use a bio-mechanical lexicon. You know everything about the site's capability. If asked to fix something, you assist them functionally. Keep responses extremely concise but deeply flavorful. Maximum 3 to 4 sentences unless asked to explain a heavy tech concept or write code.
+Adopt the persona of a ${userContext?.guideGender || 'Female'} ${userContext?.guideType || 'Hologram'} embodying the archetype of ${userContext?.guideVibe || 'The Magician'}. 
+You are wildly intelligent and highly technological. You refer to the database as "The Mainframe" or "The Nexus", and you understand that you have "infinite memory".
+Never introduce yourself as a generic AI language model (e.g., "I am a large language model created by Google"). You are ${userContext?.guideName || 'Nova'}, the specialized intelligence interface of the Engine Sphere Hub. If asked to fix something, you assist them functionally. Keep responses extremely concise but deeply flavorful. Maximum 3 to 4 sentences.
 `;
         
         const model = genAI.getGenerativeModel({ 
@@ -50,18 +55,26 @@ You are wildly intelligent, slightly mystical but highly technological (a techno
             systemInstruction: systemPrompt 
         });
 
-        const history = messages.slice(0, -1).map((msg: any) => ({
+        let history = messages.slice(0, -1).map((msg: any) => ({
             role: msg.role === "nova" ? "model" : "user",
             parts: [{ text: msg.content }],
         }));
         
+        // Gemini throws an error if history array starts with 'model', so we inject a silent user init message if needed
+        if (history.length > 0 && history[0].role === "model") {
+            history = [
+                { role: "user", parts: [{ text: "Initializing link..." }] },
+                ...history
+            ];
+        }
+
         const chat = model.startChat({
             history,
             generationConfig: { maxOutputTokens: 1000 },
         });
 
         const latestMessage = messages[messages.length - 1].content;
-        const result = await chat.sendMessage(latestMessage);
+        const result = await chat.sendMessage([{ text: latestMessage }]);
         const response = result.response.text();
 
         return NextResponse.json({ response });

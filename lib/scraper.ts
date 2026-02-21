@@ -34,6 +34,11 @@ export async function scrapeAllSites(activePlatforms: string[] = []): Promise<Sc
             "alignerr": fetchAlignerr,
             "turing": fetchTuring,
             "dataannotation": fetchDataAnnotation,
+            "ashby": fetchAshby,
+            "breezyhr": fetchBreezyHR,
+            "recruitee": fetchRecruitee,
+            "weworkremotely": fetchWeWorkRemotely,
+            "remoteok": fetchRemoteOK,
         };
 
         for (const platform of activePlatforms) {
@@ -309,4 +314,133 @@ async function fetchDataAnnotation(): Promise<ScrapedJob[]> {
             location: "Worldwide / Remote"
         }
     ];
+}
+
+async function fetchAshby(): Promise<ScrapedJob[]> {
+    // Strategy: Ashby provides an open API at api.ashbyhq.com
+    const companies = ['snorkel', 'cohere']; // Extendable list 
+    const jobs: ScrapedJob[] = [];
+    
+    for (const company of companies) {
+        try {
+            const res = await fetch('https://api.ashbyhq.com/posting-api/job-board/' + company, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: "{ jobPostings { id title locationName employmentType url } }" })
+            });
+            if (!res.ok) continue;
+            const payload = await res.json();
+            
+            if (payload && payload.data && payload.data.jobPostings) {
+                for (const j of payload.data.jobPostings) {
+                    jobs.push({
+                        title: j.title || "",
+                        company: company.toUpperCase(),
+                        url: j.url || "",
+                        description: j.title || "", 
+                        location: (j.locationName || "Remote")
+                    });
+                }
+            }
+        } catch (e) {
+            console.error(`Ashby fetch failed for ${company}`, e);
+        }
+    }
+    return jobs;
+}
+
+async function fetchBreezyHR(): Promise<ScrapedJob[]> {
+    const companies = ['n8n', 'centific', 'telus']; 
+    const jobs: ScrapedJob[] = [];
+    
+    for (const company of companies) {
+        try {
+            const res = await fetch(`https://${company}.breezy.hr/json`);
+            if (!res.ok) continue;
+            const data = await res.json();
+            
+            if (Array.isArray(data)) {
+                for (const j of data) {
+                    jobs.push({
+                        title: j.name || "",
+                        company: company.toUpperCase(),
+                        url: j.url || "",
+                        description: j.type?.name || "",
+                        location: (j.location?.name || "Remote")
+                    });
+                }
+            }
+        } catch (e) {
+             console.error(`BreezyHR fetch failed for ${company}`, e);
+        }
+    }
+    return jobs;
+}
+
+async function fetchRecruitee(): Promise<ScrapedJob[]> {
+    const companies = ['hotjar']; 
+    const jobs: ScrapedJob[] = [];
+    
+    for (const company of companies) {
+        try {
+            const res = await fetch(`https://${company}.recruitee.com/api/offers`);
+            if (!res.ok) continue;
+            const data = await res.json();
+            
+            if (data && data.offers) {
+                for (const j of data.offers) {
+                    jobs.push({
+                        title: j.title || "",
+                        company: company.toUpperCase(),
+                        url: j.careers_url || "",
+                        description: j.department || "",
+                        location: (j.location || "Remote")
+                    });
+                }
+            }
+        } catch (e) {
+             console.error(`Recruitee fetch failed for ${company}`, e);
+        }
+    }
+    return jobs;
+}
+
+async function fetchWeWorkRemotely(): Promise<ScrapedJob[]> {
+    const jobs: ScrapedJob[] = [];
+    try {
+        const res = await fetch('https://weworkremotely.com/categories/remote-programming-jobs.rss', {
+            headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
+        });
+        if (!res.ok) return jobs;
+        const text = await res.text();
+        const $ = cheerio.load(text, { xmlMode: true });
+        
+        $('item').each((i, el) => {
+            jobs.push({
+                title: $(el).find('title').text() || "",
+                company: "WWR Company", 
+                url: $(el).find('link').text() || "",
+                description: $(el).find('description').text() || "",
+                location: "Worldwide / Remote"
+            });
+        });
+    } catch(e) {}
+    return jobs;
+}
+
+async function fetchRemoteOK(): Promise<ScrapedJob[]> {
+    try {
+        const res = await fetch("https://remoteok.com/api?tag=ai"); // Target AI specifically
+        const data = await res.json();
+        // The first element of RemoteOK API is usually a legal warning object, slice from 1
+        return (data.slice(1) || []).map((j: any) => ({
+            title: j.position || "",
+            company: j.company || "",
+            url: j.url || "",
+            description: j.description || "",
+            location: j.location || "Remote"
+        }));
+    } catch (e) {
+        return [];
+    }
 }

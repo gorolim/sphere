@@ -63,7 +63,7 @@ export async function fetchAndSyncJobs() {
         const includeEmptyLocations = settings?.includeEmptyLocations ?? true;
         const activePlatforms = settings?.platforms?.length 
             ? settings.platforms 
-            : ["remotive", "jobicy", "oneforma", "greenhouse", "lever", "workable", "hiringcafe", "wttj", "vetto", "wellfound", "upwork", "alignerr", "turing"];
+            : ["remotive", "jobicy", "oneforma", "greenhouse", "lever", "workable", "hiringcafe", "wttj", "vetto", "wellfound", "upwork", "alignerr", "turing", "dataannotation", "ashby", "breezyhr", "recruitee", "weworkremotely", "remoteok"];
 
         const excludedTerms = settings?.excludedKeywords?.length 
             ? settings.excludedKeywords 
@@ -103,6 +103,17 @@ export async function fetchAndSyncJobs() {
                             url: job.url,
                             keywords: matchedKeywords,
                             status: "discovered",
+                        }
+                    });
+                    newJobsAdded++;
+                } else if (existing.isHidden) {
+                    // User explicitly wants old/hidden jobs to reappear if they still exist on the board
+                    await db.job.update({
+                        where: { id: existing.id },
+                        data: {
+                            isHidden: false,
+                            status: "discovered", // reset status so it's fresh for them
+                            keywords: matchedKeywords
                         }
                     });
                     newJobsAdded++;
@@ -155,7 +166,7 @@ export async function getJobSettings() {
             customKeywords: settings?.customKeywords || [],
             locations: settings?.locations || ["remote", "worldwide", "anywhere", "global", "latam", "americas"],
             includeEmptyLocations: settings?.includeEmptyLocations ?? true,
-            platforms: settings?.platforms || ["remotive", "jobicy", "oneforma", "greenhouse", "lever", "workable", "hiringcafe", "wttj", "vetto", "wellfound", "upwork", "alignerr", "turing"],
+            platforms: settings?.platforms || ["remotive", "jobicy", "oneforma", "greenhouse", "lever", "workable", "hiringcafe", "wttj", "vetto", "wellfound", "upwork", "alignerr", "turing", "dataannotation", "ashby", "breezyhr", "recruitee", "weworkremotely", "remoteok"],
             excludedKeywords: settings?.excludedKeywords || ["us only", "us-only", "requires us work authorization", "us visa", "united states only"]
         }
     };

@@ -1,0 +1,20 @@
+{
+  "agent": {
+    "model": "google-antigravity/gemini-3.1-pro-high",
+    "name": "Nova",
+    "role": "Success Guide"
+  },
+  "memory": {
+    "provider": "local",
+    "directory": "./memory_logs",
+    "features": [
+      "semanticSearch",
+      "structuredMarkdown"
+    ]
+  },
+  "heartbeat": {
+    "enabled": true,
+    "interval": "4h",
+    "logic": "Check if user progressed in 10-step formula. If stalled, generate and send proactive dashboard message."
+  }
+}

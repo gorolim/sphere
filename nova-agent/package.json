@@ -2,6 +2,9 @@
   "name": "nova-agent",
   "version": "1.0.0",
   "description": "The Engine Sphere Hub Guide Companion",
+  "scripts": {
+    "start": "openclaw serve --workspace . --port ${PORT:-18789} --host 0.0.0.0"
+  },
   "dependencies": {
     "openclaw": "latest"
   }

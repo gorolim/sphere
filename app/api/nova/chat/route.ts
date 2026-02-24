@@ -24,11 +24,10 @@ Your Personality Core Archetype: ${userContext?.guideVibe || 'The Magician'}
         const finalMessages = [
             { role: "system", content: dynamicSystemPrompt },
             ...mappedMessages
-        ];
-
-        // Route the request to the Railway OpenClaw daemon process over the private network
-        const openclawHost = process.env.OPENCLAW_HOST || "devoted-love.railway.internal";
-        const clawRes = await fetch(`http://${openclawHost}:18789/v1/chat/completions`, {
+        // Route the request to the Railway OpenClaw daemon process over the public interface
+        // This allows local dev instances of the Engine Sphere Hub to connect securely 
+        const openclawHost = process.env.OPENCLAW_HOST || "devoted-love-production.up.railway.app";
+        const clawRes = await fetch(`https://${openclawHost}/v1/chat/completions`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

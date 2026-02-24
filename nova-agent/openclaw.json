@@ -6,7 +6,7 @@
   },
   "memory": {
     "provider": "local",
-    "directory": "./memory_logs",
+    "directory": "/data/.openclaw",
     "features": [
       "semanticSearch",
       "structuredMarkdown"

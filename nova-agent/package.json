@@ -1,0 +1,8 @@
+{
+  "name": "nova-agent",
+  "version": "1.0.0",
+  "description": "The Engine Sphere Hub Guide Companion",
+  "dependencies": {
+    "openclaw": "latest"
+  }
+}

@@ -26,8 +26,9 @@ Your Personality Core Archetype: ${userContext?.guideVibe || 'The Magician'}
             ...mappedMessages
         ];
 
-        // Route the request to the local OpenClaw daemon process
-        const clawRes = await fetch("http://127.0.0.1:18789/v1/chat/completions", {
+        // Route the request to the Railway OpenClaw daemon process over the private network
+        const openclawHost = process.env.OPENCLAW_HOST || "devoted-love.railway.internal";
+        const clawRes = await fetch(`http://${openclawHost}:18789/v1/chat/completions`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

@@ -1,35 +1,32 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 
 export async function POST(req: Request) {
     try {
-        const authData = await auth();
-        const userId = authData?.userId;
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized: Only authenticated Engine Sphere users can access the Master Guide." }, { status: 401 });
-        }
+        const adminEmail = process.env.MASTER_ADMIN_EMAIL || "rrolim.rafael@gmail.com";
+        const adminUser = await prisma.user.findUnique({ where: { email: adminEmail } });
+        const userId = adminUser?.id;
 
         const { messages, userContext } = await req.json();
         
         // Fetch the User's Long-Term Memory (Semantic Context)
-        const recentJourneys = await prisma.journeyEntry.findMany({
+        const recentJourneys = userId ? await prisma.journeyEntry.findMany({
             where: { userId },
             orderBy: { createdAt: 'desc' },
             take: 3
-        });
+        }) : [];
         
-        const recentArt = await prisma.marketplaceArt.findMany({
+        const recentArt = userId ? await prisma.marketplaceArt.findMany({
             where: { userId },
             orderBy: { createdAt: 'desc' },
             take: 3
-        });
+        }) : [];
         
-        const activeGigs = await prisma.serviceGig.findMany({
+        const activeGigs = userId ? await prisma.serviceGig.findMany({
             where: { userId },
             orderBy: { createdAt: 'desc' },
             take: 3
-        });
+        }) : [];
 
         // We pass the active UI customizations as a system prompt to the OpenClaw daemon
         // so it overlays these traits onto its core SOUL.md persona.

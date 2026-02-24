@@ -1,130 +1,99 @@
-import { db } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 
-// The XP thresholds required to reach each Phase (1-10)
-const PHASE_XP_THRESHOLDS: Record<number, number> = {
-  1: 0,      // Phase 1: Mind/Body/Spirit Check
-  2: 500,    // Phase 2: Orchestrator
-  3: 1500,   // Phase 3: The Merkabah
-  4: 3000,   // Phase 4: Sri Yantra
-  5: 5000,   // Phase 5: Oroboros Loop
-  6: 8000,   // Phase 6: Omnipresence
-  7: 12000,  // Phase 7: Master Narrative
-  8: 18000,  // Phase 8: Gamification
-  9: 25000,  // Phase 9: Nomenclature
-  10: 40000, // Phase 10: AI Brain
+// The XP curve requirements for each of the 10 Tarot phases
+const PHASE_XP_REQUIREMENTS: Record<number, number> = {
+    1: 0,       // The Spark (Arcanum 0)
+    2: 100,     // The Alignment (Arcanum 1: The Magician)
+    3: 300,     // The Simulation (Arcanum 2: The High Priestess)
+    4: 600,     // The Value Exchange (Arcanum 3: The Empress)
+    5: 1000,    // The Awakening (Arcanum 4: The Emperor)
+    6: 1500,    // The Omnipresence Engine (Arcanum 5: The Hierophant)
+    7: 2100,    // The Broadcast (Arcanum 6: The Lovers)
+    8: 2800,    // The Creator (Arcanum 7: The Chariot)
+    9: 3600,    // The Synchronization (Arcanum 8: Strength)
+    10: 5000,   // The Automator (Arcanum 21: The World)
 };
 
-// Avatar Evolution mapping
-// Translates a Phase (1-10) into a visual state for the 3D Component
-const AVATAR_EVOLUTION_HINTS: Record<number, string> = {
-  1: "energy_orb",
-  2: "wireframe",
-  3: "wireframe_glowing",
-  4: "solid_basic",
-  5: "solid_metallic",
-  6: "ethereal_ghost",
-  7: "ethereal_lucid",
-  8: "hologram_glitch",
-  9: "hologram_stable",
-  10: "manifested_being",
+// Map of phases to their corresponding Avatar visual states
+const AVATAR_VISUAL_STATES: Record<number, string> = {
+    1: "energy_orb",
+    2: "glowing_core",
+    3: "wireframe",
+    4: "solid_material",
+    5: "awakened_eyes",
+    6: "energy_tendrils",
+    7: "armor_plating",
+    8: "power_aura",
+    9: "biomechanical_lexicon",
+    10: "enlightened_world",
 };
 
 /**
- * Retrieves the AgentStat for a given user, creating it if it doesn't exist.
+ * Ensures a user has an AgentStat record, creating one if it doesn't exist.
  */
 export async function getAgentStat(userId: string) {
-  let stat = await db.agentStat.findUnique({
-    where: { userId },
-  });
-
-  if (!stat) {
-    stat = await db.agentStat.create({
-      data: {
-        userId,
-        totalExperience: 0,
-        currentPhase: 1,
-        loyaltyScore: 0,
-        avatarVisualState: AVATAR_EVOLUTION_HINTS[1],
-      },
-    });
-  }
-  return stat;
+    let stat = await prisma.agentStat.findUnique({ where: { userId } });
+    
+    if (!stat) {
+        stat = await prisma.agentStat.create({
+            data: {
+                userId,
+                totalExperience: 0,
+                currentPhase: 1,
+                loyaltyScore: 0,
+                avatarVisualState: "energy_orb",
+            },
+        });
+    }
+    return stat;
 }
 
 /**
- * Adds XP to the user and checks for Phase Evolution.
+ * Awards experience points to a user and triggers a phase check.
+ * Used passively when backend milestones are hit (e.g., publishing a gig).
  */
-export async function recordAction(userId: string, xpGained: number, context?: string) {
-  try {
+export async function awardExperience(userId: string, amount: number) {
     const stat = await getAgentStat(userId);
-    const newXp = stat.totalExperience + xpGained;
-
-    // Check if we hit a new phase threshold
-    let newPhase = stat.currentPhase;
-    for (let p = 10; p >= 1; p--) {
-      if (newXp >= PHASE_XP_THRESHOLDS[p]) {
-        if (p > stat.currentPhase) {
-          newPhase = p;
-        }
-        break;
-      }
-    }
-
-    const nextVisualState = AVATAR_EVOLUTION_HINTS[newPhase] || stat.avatarVisualState;
-
-    const updatedStat = await db.agentStat.update({
-      where: { userId },
-      data: {
-        totalExperience: newXp,
-        currentPhase: newPhase,
-        avatarVisualState: nextVisualState,
-      },
+    
+    const newTotal = stat.totalExperience + amount;
+    
+    await prisma.agentStat.update({
+        where: { userId },
+        data: { totalExperience: newTotal }
     });
-
-    return {
-      stat: updatedStat,
-      leveledUp: newPhase > stat.currentPhase,
-      previousPhase: stat.currentPhase,
-    };
-  } catch (error) {
-    console.error("[GAMIFICATION_RECORD_ACTION]", error);
-    return null;
-  }
+    
+    // Evaluate if this new XP total triggers a Tarot Evolution
+    await checkPhaseUpgrade(userId);
 }
 
 /**
- * Awards a specific Badge to the User (Open Badges v3.0 simplified reference).
+ * Checks if the user's current XP meets the threshold for the next Tarot Phase.
+ * If so, upgrades their DB record, updating the 3D Avatar's visual state.
  */
-export async function awardBadge(userId: string, badgeId: string, context?: string) {
-  try {
-    // Check if they already have it
-    const existing = await db.userAchievement.findUnique({
-      where: {
-        userId_badgeId: {
-          userId,
-          badgeId,
-        },
-      },
-    });
+export async function checkPhaseUpgrade(userId: string) {
+    const stat = await getAgentStat(userId);
+    const currentXP = stat.totalExperience;
+    let newPhase = stat.currentPhase;
 
-    if (existing) {
-      return { success: false, reason: "ALREADY_AWARDED" };
+    // Loop through the phases to find the highest phase earned by XP
+    for (let phase = 10; phase >= 1; phase--) {
+        if (currentXP >= PHASE_XP_REQUIREMENTS[phase]) {
+            newPhase = Math.max(newPhase, phase);
+            break;
+        }
     }
 
-    const achievement = await db.userAchievement.create({
-      data: {
-        userId,
-        badgeId,
-        earnedContext: context,
-      },
-      include: {
-        badge: true,
-      },
-    });
-
-    return { success: true, achievement };
-  } catch (error) {
-    console.error("[GAMIFICATION_AWARD_BADGE]", error);
-    return { success: false, reason: "ERROR", error };
-  }
+    if (newPhase > stat.currentPhase) {
+        const visualState = AVATAR_VISUAL_STATES[newPhase] || "energy_orb";
+        
+        await prisma.agentStat.update({
+            where: { userId },
+            data: { 
+                currentPhase: newPhase,
+                avatarVisualState: visualState
+            }
+        });
+        
+        console.log(`[ALCHEMICAL ENGINE] User ${userId} evolved to Phase ${newPhase}. Avatar mutating to ${visualState}.`);
+    }
 }

@@ -296,7 +296,7 @@ export function queryBrain(query: string) {
     if (lowerQ.includes("hello") || lowerQ.includes("hi")) {
         return {
             type: "chat",
-            message: "Greetings. I am The Architect. My systems are online. Query the fleet or hardware database."
+            message: "Greetings. I am Nova. My systems are online. How may I assist you with your journey today?"
         };
     }
 

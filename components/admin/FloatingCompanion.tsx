@@ -12,13 +12,13 @@ function NovaAvatar({ user }: { user: any }) {
     const visualState = user?.agentStat?.avatarVisualState || "energy_orb";
 
     // Set properties based on Alchemical Engine Phase
-    const isWireframe = visualState.includes("wireframe") || visualState.includes("hologram");
-    const isDistorted = visualState === "energy_orb" || visualState.includes("ethereal");
-    const emissiveIntensity = visualState.includes("glowing") || visualState.includes("stable") ? 2 : 0.5;
-    const metalness = visualState.includes("metallic") || visualState === "manifested_being" ? 1 : 0.8;
-    const opacity = visualState.includes("ethereal") ? 0.3 : 1;
+    const isWireframe = visualState.includes("wireframe") || visualState.includes("lexicon");
+    const isDistorted = visualState === "energy_orb" || visualState.includes("tendrils") || visualState.includes("aura");
+    const emissiveIntensity = visualState.includes("glowing") || visualState.includes("enlightened") ? 2 : 0.5;
+    const metalness = visualState.includes("material") || visualState.includes("armor") || visualState.includes("enlightened") ? 1 : 0.8;
+    const opacity = visualState.includes("orb") || visualState.includes("aura") ? 0.3 : 1;
     const isTransparent = opacity < 1;
-    const rotSpeed = visualState === "hologram_glitch" ? 2 : 0.2;
+    const rotSpeed = visualState === "awakened_eyes" ? 2 : (visualState === "enlightened_world" ? 0.05 : 0.2);
 
     useFrame((state: any) => {
         if (sphereRef.current) {

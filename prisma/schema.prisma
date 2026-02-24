@@ -346,7 +346,7 @@ model MarketingCampaign {
 
 model Badge {
   id              String   @id @default(cuid())
-  name            String
+  name            String   @unique
   iconUrl         String
   description     String   @db.Text
   
@@ -444,3 +444,4 @@ model TreasuryTransaction {
 
   @@index([userId])
 }
+

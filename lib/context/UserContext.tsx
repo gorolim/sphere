@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { AgentProfile, HardwareItem } from "@/lib/brain";
-import { useUser as useClerkUser, useClerk } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 interface UserState {
     name: string;
@@ -17,8 +17,8 @@ interface UserState {
 
 interface UserContextType {
     user: UserState;
-    login: () => void; // Redirects to Clerk login
-    logout: () => void; // Clerk logout
+    login: () => void;
+    logout: () => void;
     hireAgent: (agent: AgentProfile, cost: number) => Promise<boolean>;
     buyHardware: (itemId: string, cost: number) => Promise<boolean>;
     addBalance: (amount: number) => void;
@@ -39,66 +39,65 @@ const defaultUser: UserState = {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-    const { user: clerkUser, isLoaded: isClerkLoaded, isSignedIn } = useClerkUser();
-    const { signOut, openSignIn } = useClerk();
-
+    const router = useRouter();
     const [user, setUser] = useState<UserState>(defaultUser);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Sync Clerk user with our local state/DB
+    // Sync user with local state cache
     useEffect(() => {
-        if (!isClerkLoaded) return;
-
-        if (isSignedIn && clerkUser) {
-            // In a real app, we would fetch the BALANCE and INVENTORY from our DB API here.
-            // For now, we'll simulate fetching or use local storage as a cache, 
-            // but rely on Clerk for identity.
-
-            // TODO: Fetch from /api/user/me to get real DB data (credits, etc)
-            const saved = localStorage.getItem(`sphere_user_${clerkUser.id}`);
-            const savedData = saved ? JSON.parse(saved) : {};
-
-            setUser({
-                name: clerkUser.fullName || clerkUser.firstName || "User",
-                email: clerkUser.primaryEmailAddress?.emailAddress || "",
-                avatar: clerkUser.imageUrl,
-                balance: savedData.balance || 1000, // Starter credits
-                hiredAgents: savedData.hiredAgents || [],
-                inventory: savedData.inventory || [],
-                isLoggedIn: true,
-                role: "user" // We could fetch this from publicMetadata if synced
-            });
-        } else {
-            setUser(defaultUser);
-        }
-        setIsLoading(false);
-    }, [isClerkLoaded, isSignedIn, clerkUser]);
+        const fetchUser = async () => {
+            try {
+                const saved = localStorage.getItem(`sphere_user_native`);
+                const savedData = saved ? JSON.parse(saved) : null;
+                if (savedData) {
+                    setUser({
+                        name: "Agent",
+                        email: "",
+                        avatar: "",
+                        balance: savedData.balance || 1000, 
+                        hiredAgents: savedData.hiredAgents || [],
+                        inventory: savedData.inventory || [],
+                        isLoggedIn: true,
+                        role: "user" 
+                    });
+                }
+            } catch (e) {
+                // Handle errors silently on init
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchUser();
+    }, []);
 
     // Save state changes (mock DB persistence)
     useEffect(() => {
-        if (user.isLoggedIn && clerkUser) {
-            localStorage.setItem(`sphere_user_${clerkUser.id}`, JSON.stringify({
+        if (user.isLoggedIn) {
+            localStorage.setItem(`sphere_user_native`, JSON.stringify({
                 balance: user.balance,
                 hiredAgents: user.hiredAgents,
                 inventory: user.inventory
             }));
         }
-    }, [user, clerkUser]);
+    }, [user]);
 
     const login = () => {
-        openSignIn();
+        router.push("/sign-in");
     };
 
-    const logout = () => {
-        signOut();
-        setUser(defaultUser);
+    const logout = async () => {
+        try {
+            await fetch("/api/auth/sign-in", { method: "DELETE" });
+            setUser(defaultUser);
+            router.push("/sign-in");
+            router.refresh();
+        } catch (e) {}
     };
 
     const hireAgent = async (agent: AgentProfile, cost: number) => {
         if (user.balance < cost) return false;
         if (user.hiredAgents.includes(agent.id)) return false;
 
-        // TODO: Call API to deduct credits in DB
         setUser(prev => ({
             ...prev,
             balance: prev.balance - cost,
@@ -110,7 +109,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const buyHardware = async (itemId: string, cost: number) => {
         if (user.balance < cost) return false;
 
-        // TODO: Call API to deduct credits in DB
         setUser(prev => ({
             ...prev,
             balance: prev.balance - cost,
@@ -120,7 +118,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
     };
 
     const addBalance = (amount: number) => {
-        // This would normally be a Stripe webhook result
         setUser(prev => ({ ...prev, balance: prev.balance + amount }));
     };
 

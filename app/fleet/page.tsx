@@ -1,13 +1,11 @@
-
 import NavBar from "@/components/NavBar";
 import { SPHERE_AGENTS } from "@/lib/brain";
 import Link from "next/link";
 import { Shield, AlertTriangle } from "lucide-react";
-import { currentUser } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/user";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/user";
-import SyncRetryButton from "@/components/SyncRetryButton";
+import { verifyToken } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -21,24 +19,17 @@ export default async function FleetPage() {
 
     if (!user) {
         // Handle case where user exists in Clerk but not DB (webhook lag?) or not logged in
-        const clerkUser = await currentUser();
-        if (!clerkUser) redirect("/sign-in");
-
+        // The previous logic for `clerkUser` and `WAITING_FOR_SYNC` is replaced.
+        // If user is null here, it means they are not logged in or their profile isn't synced.
+        // The new UI directs them to sign up.
         return (
             <div className="min-h-screen bg-engine-black text-white flex flex-col items-center justify-center font-mono p-6 text-center">
                 <div className="text-center w-full max-w-md flex flex-col items-center">
-                    <h1 className="text-2xl mb-2 text-neon-cyan">INITIALIZING PROFILE...</h1>
-                    <p className="text-gray-400 mb-6">Synchronization in progress.</p>
-
-                    <SyncRetryButton />
-
-                    <div className="mt-8 text-left bg-gray-900/50 p-4 rounded-lg w-full">
-                        <p className="text-xs text-gray-500 font-mono mb-1">DIAGNOSTICS:</p>
-                        <p className="text-xs text-red-400 font-mono">
-                            STATUS: WAITING_FOR_SYNC<br />
-                            USER_ID: {clerkUser.id}
-                        </p>
-                    </div>
+                    <h2 className="text-2xl font-bold mb-4 font-display">Unregistered Signal</h2>
+                    <p className="mb-6 opacity-70">Your identity was not found in the global registry. Please mint your profile to access the fleet.</p>
+                    <Link href="/sign-up" className="bg-neon-cyan text-black px-6 py-2 rounded font-bold hover:bg-neon-cyan/80 transition-colors">
+                        MINT IDENTITY
+                    </Link>
                 </div>
             </div>
         );

@@ -1,17 +1,13 @@
 "use server";
 
 import { prisma as db } from "@/lib/db";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/user";
 
 const isAdmin = async () => {
-    const { userId } = await auth();
-    if (!userId) return false;
+    const nativeUser = await getCurrentUser();
+    if (!nativeUser) return false;
     
-    const dbUser = await db.user.findUnique({
-        where: { clerkId: userId },
-    });
-    
-    return dbUser?.role === "admin";
+    return nativeUser.role === "admin";
 };
 
 export async function getCanvasBoards() {

@@ -3,15 +3,16 @@ import NavBar from "@/components/NavBar";
 import CheckoutModal from "@/components/CheckoutModal";
 import { CheckCircle, XCircle, Radio, Database, PenTool, Zap, ArrowRight } from "lucide-react";
 import { checkSubscription } from "@/lib/subscription";
-import { currentUser } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/user";
 
 export const dynamic = "force-dynamic";
 
 export default async function PricingPage() {
+    const clerkUser = await getCurrentUser();
     let isPro = false;
     let isLoggedIn = false;
     try {
-        const user = await currentUser();
+        const user = await getCurrentUser();
         isLoggedIn = !!user;
         if (user) {
             isPro = await checkSubscription();

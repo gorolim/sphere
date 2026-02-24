@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma as db } from "@/lib/db";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/user";
 import { scrapeAllSites } from "@/lib/scraper";
 
 const DEFAULT_KEYWORDS = [
@@ -19,15 +19,9 @@ const containsKeyword = (text: string, keywords: string[]): string[] => {
 };
 
 export async function getJobs() {
-    const { userId } = await auth();
-    if (!userId) return { error: "Unauthorized" };
-
-    const dbUser = await db.user.findUnique({
-        where: { clerkId: userId },
-    });
-
-    if (!dbUser || dbUser.role !== "admin") {
-        return { error: "Unauthorized", role: dbUser?.role };
+    const user = await getCurrentUser();
+    if (!user || user.role !== "admin") {
+        return { error: "Unauthorized", role: user?.role };
     }
 
     const jobs = await db.job.findMany({
@@ -39,14 +33,8 @@ export async function getJobs() {
 }
 
 export async function fetchAndSyncJobs() {
-    const { userId } = await auth();
-    if (!userId) return { error: "Unauthorized" };
-
-    const dbUser = await db.user.findUnique({
-        where: { clerkId: userId },
-    });
-
-    if (!dbUser || dbUser.role !== "admin") {
+    const user = await getCurrentUser();
+    if (!user || user.role !== "admin") {
         return { error: "Unauthorized" };
     }
 
@@ -119,8 +107,8 @@ export async function fetchAndSyncJobs() {
 }
 
 export async function updateJobStatus(jobId: string, newStatus: string) {
-    const { userId } = await auth();
-    if (!userId) return { error: "Unauthorized" };
+    const user = await getCurrentUser();
+    if (!user || user.role !== "admin") return { error: "Unauthorized" };
 
     try {
         await db.job.update({
@@ -134,8 +122,8 @@ export async function updateJobStatus(jobId: string, newStatus: string) {
 }
 
 export async function hideJob(jobId: string) {
-    const { userId } = await auth();
-    if (!userId) return { error: "Unauthorized" };
+    const user = await getCurrentUser();
+    if (!user || user.role !== "admin") return { error: "Unauthorized" };
 
     try {
         await db.job.update({
@@ -162,13 +150,8 @@ export async function getJobSettings() {
 }
 
 export async function updateSettingsArray(field: 'customKeywords' | 'locations' | 'excludedKeywords' | 'platforms', items: string[]) {
-    const { userId } = await auth();
-    if (!userId) return { error: "Unauthorized" };
-    
-    const dbUser = await db.user.findUnique({
-        where: { clerkId: userId },
-    });
-    if (!dbUser || dbUser.role !== "admin") return { error: "Unauthorized" };
+    const user = await getCurrentUser();
+    if (!user || user.role !== "admin") return { error: "Unauthorized" };
 
     try {
         const settings = await db.jobSettings.findFirst();
@@ -193,13 +176,8 @@ export async function updateSettingsArray(field: 'customKeywords' | 'locations' 
 }
 
 export async function updateSettingsBoolean(field: 'includeEmptyLocations', value: boolean) {
-    const { userId } = await auth();
-    if (!userId) return { error: "Unauthorized" };
-    
-    const dbUser = await db.user.findUnique({
-        where: { clerkId: userId },
-    });
-    if (!dbUser || dbUser.role !== "admin") return { error: "Unauthorized" };
+    const user = await getCurrentUser();
+    if (!user || user.role !== "admin") return { error: "Unauthorized" };
 
     try {
         const settings = await db.jobSettings.findFirst();

@@ -18,6 +18,14 @@ export default async function AdminLayout({
     if (!user) {
         redirect("/sign-in");
     }
+
+    const isMasterAdmin = process.env.MASTER_ADMIN_EMAIL &&
+        user.email.toLowerCase() === process.env.MASTER_ADMIN_EMAIL.toLowerCase();
+
+    if (!isMasterAdmin) {
+        // Enforce role separation: Standard users drop into /dashboard
+        redirect("/dashboard");
+    }
     const dbUser = await prisma.user.findUnique({
         where: { id: user.id },
         include: { agentStat: true }

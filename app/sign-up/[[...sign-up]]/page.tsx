@@ -33,8 +33,8 @@ export default function NativeSignUp() {
                 return;
             }
 
-            // Route new identities directly to the core
-            router.push("/master-admin");
+            // Route new identities directly to the user dashboard
+            router.push("/dashboard");
             router.refresh();
         } catch (err) {
             setError("Network anomaly detected.");

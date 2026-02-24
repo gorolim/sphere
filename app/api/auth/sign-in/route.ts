@@ -28,7 +28,11 @@ export async function POST(req: Request) {
         const token = await signToken({ userId: user.id });
         await setSessionCookie(token);
 
-        return NextResponse.json({ success: true, user: { id: user.id, email: user.email, username: user.username } });
+        const isMasterAdmin = process.env.MASTER_ADMIN_EMAIL &&
+            user.email.toLowerCase() === process.env.MASTER_ADMIN_EMAIL.toLowerCase();
+        const redirectUrl = isMasterAdmin ? "/master-admin" : "/dashboard";
+
+        return NextResponse.json({ success: true, user: { id: user.id, email: user.email, username: user.username }, redirectUrl });
     } catch (error) {
         console.error("Sign-in Error:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

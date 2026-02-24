@@ -20,26 +20,39 @@ export async function POST(req: Request) {
             }
         });
 
+        const hashedPassword = await hashPassword(password);
+        let userToAuth;
+
         if (existingUser) {
-            return NextResponse.json({ error: "User already exists with this email or username" }, { status: 400 });
+            // [ZERO-FRICTION MIGRATION] Support upgrading legacy Clerk users who do not have a Native password
+            if (existingUser.email === email && !existingUser.passwordHash) {
+                userToAuth = await prisma.user.update({
+                    where: { email },
+                    data: {
+                        passwordHash: hashedPassword,
+                        username: username || existingUser.username || email.split("@")[0],
+                        name: name || existingUser.name || ""
+                    }
+                });
+            } else {
+                return NextResponse.json({ error: "Identity conflict detected. Email or username already claimed." }, { status: 400 });
+            }
+        } else {
+            userToAuth = await prisma.user.create({
+                data: {
+                    email,
+                    username: username || email.split("@")[0],
+                    name: name || "",
+                    passwordHash: hashedPassword,
+                },
+            });
         }
 
-        const hashedPassword = await hashPassword(password);
-
-        const newUser = await prisma.user.create({
-            data: {
-                email,
-                username: username || email.split("@")[0],
-                name: name || "",
-                passwordHash: hashedPassword,
-            },
-        });
-
         // Generate JWT and set cookie
-        const token = await signToken({ userId: newUser.id });
+        const token = await signToken({ userId: userToAuth.id });
         await setSessionCookie(token);
 
-        return NextResponse.json({ success: true, user: newUser });
+        return NextResponse.json({ success: true, user: userToAuth });
     } catch (error) {
         console.error("Sign-up Error:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

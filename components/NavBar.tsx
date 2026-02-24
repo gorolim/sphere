@@ -5,10 +5,11 @@ import { Cpu, Menu, Users, ShoppingBag, Radio, BookOpen, Command, FileText, Sett
 import { useState } from "react";
 import { motion } from "framer-motion";
 import CommandPalette from "./CommandPalette";
-import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { useUser } from "@/lib/context/UserContext";
 
 export default function NavBar() {
     const [isOpen, setIsOpen] = useState(false);
+    const { user, login } = useUser();
 
     return (
         <nav className="fixed top-0 w-full z-50 bg-engine-black/80 backdrop-blur-md border-b border-white/10">
@@ -47,23 +48,16 @@ export default function NavBar() {
                         </Link>
 
                         <div className="flex items-center gap-4">
-                            <SignedOut>
-                                <SignInButton mode="modal">
-                                    <button className="flex items-center gap-2 bg-neon-cyan/10 border border-neon-cyan/50 text-neon-cyan px-4 py-2 rounded-lg font-mono text-sm font-bold hover:bg-neon-cyan hover:text-black transition-all">
-                                        <Users size={16} /> CONNECT_AGENT
-                                    </button>
-                                </SignInButton>
-                            </SignedOut>
-                            <SignedIn>
-                                <UserButton
-                                    appearance={{
-                                        elements: {
-                                            avatarBox: "w-10 h-10 border border-neon-cyan/50",
-                                            userButtonPopoverCard: "bg-engine-black border border-gray-800",
-                                        }
-                                    }}
-                                />
-                            </SignedIn>
+                            {!user.isLoggedIn && (
+                                <button onClick={login} className="flex items-center gap-2 bg-neon-cyan/10 border border-neon-cyan/50 text-neon-cyan px-4 py-2 rounded-lg font-mono text-sm font-bold hover:bg-neon-cyan hover:text-black transition-all">
+                                    <Users size={16} /> CONNECT_AGENT
+                                </button>
+                            )}
+                            {user.isLoggedIn && (
+                                <Link href="/dashboard" className="w-10 h-10 border border-neon-cyan/50 rounded-full flex items-center justify-center bg-engine-dark hover:bg-white/10 transition-colors">
+                                    <Cpu size={18} className="text-neon-cyan" />
+                                </Link>
+                            )}
                         </div>
                     </div>
 

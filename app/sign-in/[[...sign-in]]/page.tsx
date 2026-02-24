@@ -32,8 +32,8 @@ export default function NativeSignIn() {
                 return;
             }
 
-            // Redirect to Master Admin Nexus upon successful login
-            router.push("/master-admin");
+            // Redirect dynamically based on the server's role determination
+            router.push(data.redirectUrl || "/dashboard");
             router.refresh();
         } catch (err) {
             setError("A network error occurred.");

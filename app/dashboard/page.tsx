@@ -1,7 +1,6 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/user";
 import Link from "next/link";
 import { Zap, Bot, Activity, Box, Loader2, AlertTriangle } from "lucide-react";
-import { getCurrentUser } from "@/lib/user";
 import { redirect } from "next/navigation";
 
 import SyncRetryButton from "@/components/SyncRetryButton";
@@ -12,35 +11,19 @@ export default async function DashboardPage() {
     const user = await getCurrentUser();
 
     if (!user) {
-        // Check if logged in via Clerk but not synced to DB yet OR DB is down
-        const clerkUser = await currentUser();
-
-        if (clerkUser) {
-            // Distinguish between "Not Synced" and "DB Error"
-            // For now, we treat them similarly - we need the DB record.
-
-            return (
-                <div className="min-h-screen bg-engine-black text-white flex flex-col items-center justify-center p-6 text-center">
-                    <AlertTriangle className="w-12 h-12 text-yellow-500 mb-4 animate-pulse" />
-                    <h1 className="text-2xl font-display font-bold mb-2">Connection Interrupted</h1>
-                    <p className="text-gray-400 max-w-md mb-8">
-                        The uplink to The Hive database is unstable. We are attempting to re-establish the neural link.
-                    </p>
-
-                    <SyncRetryButton />
-
-                    <div className="mt-8 text-left bg-gray-900/50 p-4 rounded-lg w-full max-w-md">
-                        <p className="text-xs text-gray-500 font-mono mb-1">DIAGNOSTICS:</p>
-                        <p className="text-xs text-red-400 font-mono">
-                            STATUS: DB_RECORD_MISSING<br />
-                            USER_ID: {clerkUser.id}<br />
-                            CLERK_LINK: ACTIVE
-                        </p>
-                    </div>
+        return (
+            <div className="min-h-screen bg-engine-black text-white flex flex-col items-center justify-center font-mono p-6 text-center">
+                <div className="max-w-md w-full border border-neon-cyan/30 bg-engine-dark rounded-xl p-8 relative overflow-hidden shadow-[0_0_20px_rgba(0,240,255,0.1)]">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-neon-cyan animate-pulse" />
+                    <AlertTriangle className="w-16 h-16 text-neon-cyan mx-auto mb-6" />
+                    <h2 className="text-2xl font-bold mb-4 font-display">Unregistered Signal</h2>
+                    <p className="mb-6 opacity-70">Your identity was not found in the global registry.</p>
+                    <Link href="/sign-up" className="bg-neon-cyan text-black px-6 py-2 rounded font-bold hover:bg-neon-cyan/80 transition-colors">
+                        MINT IDENTITY
+                    </Link>
                 </div>
-            );
-        }
-        redirect("/sign-in");
+            </div>
+        );
     }
 
 

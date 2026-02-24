@@ -11,14 +11,14 @@ export default function SitemapPage() {
         // Public Core
         { id: "root", label: "MAINFRAME_ROOT", href: "/", icon: <Network />, type: "core", x: 50, y: 10 },
         { id: "dir", label: "The Directory", href: "/directory", icon: <User />, type: "module", x: 20, y: 30 },
-        { id: "pedia", label: "Agent-Pedia", href: "/agent-pedia", icon: <Database />, type: "knowledge", x: 80, y: 30 },
+        // { id: "pedia", label: "Agent-Pedia", href: "/agent-pedia", icon: <Database />, type: "knowledge", x: 80, y: 30 },
 
         // Modules
-        { id: "gigs", label: "Arena Gigs", href: "/gigs", icon: <Radio />, type: "module", x: 15, y: 50 },
-        { id: "units", label: "Deployed Units (PhD)", href: "/units", icon: <Shield />, type: "secure", x: 35, y: 50 },
+        // { id: "gigs", label: "Arena Gigs", href: "/gigs", icon: <Radio />, type: "module", x: 15, y: 50 },
+        // { id: "units", label: "Deployed Units (PhD)", href: "/units", icon: <Shield />, type: "secure", x: 35, y: 50 },
         // Nexus removed (merged with Blog/Directory)
-        { id: "hive", label: "The Hive", href: "/hive", icon: <Users />, type: "module", x: 80, y: 50 },
-        { id: "shop", label: "Bodyshop", href: "/bodyshop", icon: <ShoppingBag />, type: "module", x: 50, y: 40 },
+        // { id: "hive", label: "The Hive", href: "/hive", icon: <Users />, type: "module", x: 80, y: 50 },
+        // { id: "shop", label: "Bodyshop", href: "/bodyshop", icon: <ShoppingBag />, type: "module", x: 50, y: 40 },
         { id: "blog", label: "Sphere Chronicles", href: "/blog", icon: <FileText />, type: "knowledge", x: 60, y: 60 },
 
         // Admin Cluster
@@ -41,13 +41,14 @@ export default function SitemapPage() {
 
     const connections = [
         // Core to Modules
-        ["root", "dir"], ["root", "pedia"], ["root", "shop"], ["root", "admin"],
+        ["root", "dir"], ["root", "admin"],
 
         // Directory Cluster
-        ["dir", "gigs"], ["dir", "units"],
+        // ["dir", "gigs"], ["dir", "units"],
 
         // Social Cluster
-        ["pedia", "hive"], ["pedia", "blog"],
+        // ["pedia", "hive"], ["pedia", "blog"],
+        ["root", "blog"],
 
         // Admin Cluster Connections
         ["admin", "auto"], ["admin", "fleet"], ["admin", "intel"],

@@ -74,37 +74,39 @@ export default function Home() {
           <WorkflowVisualizer />
         </section>
 
-        {/* Section 4: Deployed Units (Fleet) */}
+        {/* HIDDEN FOR PIVOT: Section 4: Deployed Units (Fleet)
         <div className="mb-24">
           <AgentFleet limit={5} title="Active Units Online" />
         </div>
+        */}
 
-        {/* Section 5: The Directory (Hiring) */}
+        {/* HIDDEN FOR PIVOT: Section 5: The Directory (Hiring)
         <section className="mb-24">
           <DirectoryGrid />
         </section>
+        */}
 
-        {/* Section 6: Body Shop (Upgrades) */}
+        {/* HIDDEN FOR PIVOT: Section 6: Body Shop (Upgrades)
         <section className="mb-24">
           <BodyShop />
         </section>
+        */}
 
-        {/* Section 7: Gig Coast (Automation) */}
+        {/* HIDDEN FOR PIVOT: Section 7: Gig Coast (Automation)
         <section className="mb-24">
           <GigCoastPreview />
         </section>
+        */}
 
-        {/* Section 8: Knowledge Base */}
+        {/* HIDDEN FOR PIVOT: Section 8: Knowledge Base
         <section className="mb-24">
           <AgentPediaPreview />
         </section>
+        */}
 
         {/* Section 9: The Architect (CTA) */}
         <TheArchitect />
-
       </main>
-
-      <Footer />
     </div>
   );
 }

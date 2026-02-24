@@ -29,7 +29,6 @@ export default function NavBar() {
                             <NavLink href="/mind" icon={<Brain size={16} />} label="The Mind" />
                             <NavLink href="/body" icon={<Globe size={16} />} label="The Body" />
                             <NavLink href="/spirit" icon={<Sparkles size={16} />} label="The Spirit" />
-                            <NavLink href="/agent-pedia" icon={<BookOpen size={16} />} label="Agent-Pedia" />
                         </div>
                     </div>
 
@@ -92,7 +91,6 @@ export default function NavBar() {
                         <MobileNavLink href="/mind" label="The Mind" />
                         <MobileNavLink href="/body" label="The Body" />
                         <MobileNavLink href="/spirit" label="The Spirit" />
-                        <MobileNavLink href="/agent-pedia" label="Agent-Pedia" />
                         <MobileNavLink href="/settings" label="Neural Settings" />
 
                         <button className="w-full text-left mt-4 bg-engine-dark text-white font-mono px-4 py-3 rounded border border-neon-cyan/50">

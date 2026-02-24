@@ -9,7 +9,7 @@ import { queryBrain, HARDWARE_CATALOG, SOFTWARE_SPARKS } from "@/lib/brain";
 export default function TheArchitect() {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<{ role: 'user' | 'bot', text: string, data?: any }[]>([
-        { role: 'bot', text: "Greetings. I am The Architect. I can provision Agent/Robot fleets. Tell me what you need directly. (e.g., 'I want a robot to manage 3d printers')" }
+        { role: 'bot', text: "Greetings. I am Nova. I am the central intelligence of the Engine Sphere. How may I assist you today?" }
     ]);
     const [input, setInput] = useState("");
     const [isTyping, setIsTyping] = useState(false);
@@ -70,7 +70,7 @@ export default function TheArchitect() {
                 >
                     <div className="absolute inset-0 bg-neon-cyan/10 group-hover:bg-neon-cyan/20 transition-colors"></div>
                     {/* Placeholder until image gen works */}
-                    <span className="font-display font-bold text-neon-cyan text-2xl">A</span>
+                    <span className="font-display font-bold text-neon-cyan text-2xl">N</span>
                 </button>
             </motion.div>
 
@@ -87,7 +87,7 @@ export default function TheArchitect() {
                         <div className="bg-engine-black p-4 border-b border-white/10 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-neon-cyan rounded-full animate-pulse"></div>
-                                <span className="text-neon-cyan font-bold uppercase tracking-wider">The Architect</span>
+                                <span className="text-neon-cyan font-bold uppercase tracking-wider">Nova</span>
                             </div>
                             <button onClick={() => setIsOpen(false)} className="text-gray-500 hover:text-white">
                                 <X size={16} />
@@ -190,7 +190,7 @@ export default function TheArchitect() {
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                                placeholder="Ask the Architect..."
+                                placeholder="Ask Nova..."
                                 className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-white focus:outline-none focus:border-neon-cyan/50"
                             />
                             <button

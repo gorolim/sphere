@@ -62,6 +62,7 @@ model User {
 
   // Gamification
   achievements UserAchievement[]
+  agentStat    AgentStat?
 }
 
 model Subscription {
@@ -233,9 +234,6 @@ model AgentWorkflow {
   isActive Boolean   @default(true)
   lastRun  DateTime?
 
-  // Gamification stats
-  agentStat AgentStat?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -345,39 +343,53 @@ model MarketingCampaign {
 // ----------------------------------------------------------------------
 
 model Badge {
-  id          String  @id @default(cuid())
-  name        String
-  description String  @db.Text
-  imageUrl    String?
+  id              String   @id @default(cuid())
+  name            String
+  iconUrl         String
+  description     String   @db.Text
+  
+  // Inspired by Open Badges v3.0 criteria structure
+  criteriaJson    Json?
 
-  achievements UserAchievement[]
+  achievements    UserAchievement[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model UserAchievement {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  badgeId     String
+  badge       Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
 
-  badgeId String
-  badge   Badge  @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  // Context on how they earned it (e.g., "Published 1st Gig")
+  earnedContext String?
 
-  unlockedAt DateTime @default(now())
+  awardedAt   DateTime @default(now())
 
-  @@unique([userId, badgeId])
+  @@unique([userId, badgeId]) // A user can only earn a specific badge once
 }
 
 model AgentStat {
-  id         String        @id @default(cuid())
-  workflowId String        @unique
-  workflow   AgentWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  health Int    @default(100)
-  level  Int    @default(1)
-  xp     Int    @default(0)
-  status String @default("HEALTHY") // HEALTHY, SICK, EVOLVING
+  // Experience points mapping to Core Drive 2: Development
+  totalExperience Int      @default(0)
+  
+  // Maps to The 10 Phases of the Hub (1-10)
+  currentPhase    Int      @default(1)
+  
+  // Engagment tracking
+  loyaltyScore    Int      @default(0)
 
-  updatedAt DateTime @updatedAt
+  // Stores the Avatar's current visual state (e.g., "energy_orb", "wireframe", "solid")
+  avatarVisualState String @default("energy_orb")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

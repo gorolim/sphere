@@ -6,29 +6,42 @@ import { Sphere, MeshDistortMaterial, Float, Sparkles as DreiSparkles } from "@r
 import { X, Send, Cpu, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Generative / Placeholder 3D Model for Nova
-function NovaAvatar() {
+// Generative / Placeholder 3D Model that evolves with Gamification Phases
+function NovaAvatar({ user }: { user: any }) {
     const sphereRef = useRef<any>();
+    const visualState = user?.agentStat?.avatarVisualState || "energy_orb";
+
+    // Set properties based on Alchemical Engine Phase
+    const isWireframe = visualState.includes("wireframe") || visualState.includes("hologram");
+    const isDistorted = visualState === "energy_orb" || visualState.includes("ethereal");
+    const emissiveIntensity = visualState.includes("glowing") || visualState.includes("stable") ? 2 : 0.5;
+    const metalness = visualState.includes("metallic") || visualState === "manifested_being" ? 1 : 0.8;
+    const opacity = visualState.includes("ethereal") ? 0.3 : 1;
+    const isTransparent = opacity < 1;
+    const rotSpeed = visualState === "hologram_glitch" ? 2 : 0.2;
 
     useFrame((state: any) => {
         if (sphereRef.current) {
-            sphereRef.current.rotation.x = state.clock.getElapsedTime() * 0.2;
-            sphereRef.current.rotation.y = state.clock.getElapsedTime() * 0.3;
+            sphereRef.current.rotation.x = state.clock.getElapsedTime() * rotSpeed;
+            sphereRef.current.rotation.y = state.clock.getElapsedTime() * (rotSpeed * 1.5);
         }
     });
 
     return (
-        <Float speed={2} rotationIntensity={1} floatIntensity={2}>
+        <Float speed={2} rotationIntensity={1} floatIntensity={isDistorted ? 2 : 0.5}>
             <Sphere ref={sphereRef} args={[1, 64, 64]} scale={1.2}>
                 <MeshDistortMaterial
                     color="#00f3ff"
                     attach="material"
-                    distort={0.4}
-                    speed={2}
+                    distort={isDistorted ? 0.4 : 0}
+                    speed={isDistorted ? 2 : 0}
                     roughness={0.2}
-                    metalness={0.8}
+                    metalness={metalness}
                     emissive="#00f3ff"
-                    emissiveIntensity={0.5}
+                    emissiveIntensity={emissiveIntensity}
+                    wireframe={isWireframe}
+                    transparent={isTransparent}
+                    opacity={opacity}
                 />
             </Sphere>
             <DreiSparkles count={50} scale={3} size={2} speed={0.4} opacity={0.5} color="#c084fc" />
@@ -101,7 +114,7 @@ export function FloatingCompanion({ user }: { user: any }) {
                                     <p className="text-[10px] font-mono text-neon-cyan">TYPE: {user.guideType?.toUpperCase() || 'AVATAR'}</p>
                                 </div>
                             </div>
-                            <button onClick={() => setIsOpen(false)} className="text-gray-500 hover:text-white transition-colors">
+                            <button onClick={() => setIsOpen(false)} className="text-gray-500 hover:text-white transition-colors" title="Close Panel" aria-label="Close Companion Panel">
                                 <X size={20} />
                             </button>
                         </div>
@@ -154,25 +167,30 @@ export function FloatingCompanion({ user }: { user: any }) {
             </AnimatePresence>
 
             {/* The 3D Floating Orb Trigger */}
-            <motion.div 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-24 h-24 rounded-full cursor-pointer relative group"
-            >
-                <div className="absolute inset-0 bg-neon-cyan/10 rounded-full blur-xl group-hover:bg-neon-cyan/30 transition-colors"></div>
-                <div className="w-full h-full relative z-10 drop-shadow-[0_0_15px_rgba(0,243,255,0.5)]">
-                     <Canvas camera={{ position: [0, 0, 4], fov: 45 }}>
-                        <ambientLight intensity={0.5} />
-                        <directionalLight position={[10, 10, 5]} intensity={1.5} />
-                        <NovaAvatar />
-                    </Canvas>
-                </div>
+            {!isOpen && (
+                <motion.button
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setIsOpen(true)}
+                    title="Open Companion"
+                    aria-label="Open Companion Panel"
+                    className="relative w-20 h-20 rounded-full bg-black/50 border border-neon-cyan/50 backdrop-blur shadow-[0_0_20px_rgba(0,243,255,0.2)] overflow-hidden cursor-pointer group"
+                >
+                    <div className="absolute inset-0 bg-neon-cyan/10 rounded-full blur-xl group-hover:bg-neon-cyan/30 transition-colors"></div>
+                    <div className="w-full h-full relative z-10 drop-shadow-[0_0_15px_rgba(0,243,255,0.5)]">
+                        <Canvas camera={{ position: [0, 0, 4], fov: 45 }} className="pointer-events-none">
+                            <ambientLight intensity={0.5} />
+                            <directionalLight position={[10, 10, 5]} intensity={1.5} />
+                            <NovaAvatar user={user} />
+                        </Canvas>
+                    </div>
+                </motion.button>
+            )}
 
-                {/* Status Indicator */}
-                <div className="absolute bottom-0 right-2 w-4 h-4 bg-green-500 rounded-full border-2 border-[#0a0a0f] z-20 shadow-[0_0_10px_#22c55e]"></div>
-            </motion.div>
-
+            {/* Status Indicator */}
+            <div className="absolute bottom-0 right-2 w-4 h-4 bg-green-500 rounded-full border-2 border-[#0a0a0f] z-20 shadow-[0_0_10px_#22c55e]"></div>
         </div>
     );
 }

@@ -16,9 +16,9 @@ export default async function AdminLayout({
     if (!user) {
         redirect("/sign-in");
     }
-
     const dbUser = await prisma.user.findUnique({
-        where: { id: user.id }
+        where: { id: user.id },
+        include: { agentStat: true }
     });
 
     // Serialize Dates to prevent Client Component hydration crashes

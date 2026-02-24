@@ -1,9 +1,36 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/db";
 
 export async function POST(req: Request) {
     try {
+        const authData = await auth();
+        const userId = authData?.userId;
+        if (!userId) {
+            return NextResponse.json({ error: "Unauthorized: Only authenticated Engine Sphere users can access the Master Guide." }, { status: 401 });
+        }
+
         const { messages, userContext } = await req.json();
         
+        // Fetch the User's Long-Term Memory (Semantic Context)
+        const recentJourneys = await prisma.journeyEntry.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+            take: 3
+        });
+        
+        const recentArt = await prisma.marketplaceArt.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+            take: 3
+        });
+        
+        const activeGigs = await prisma.serviceGig.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+            take: 3
+        });
+
         // We pass the active UI customizations as a system prompt to the OpenClaw daemon
         // so it overlays these traits onto its core SOUL.md persona.
         const dynamicSystemPrompt = `
@@ -12,6 +39,21 @@ Your active Designation/Name is: ${userContext?.guideName || 'Nova'}
 Your Avatar Gender: ${userContext?.guideGender || 'Female'}
 Your Form/Type: ${userContext?.guideType || 'Hologram'}
 Your Personality Core Archetype: ${userContext?.guideVibe || 'The Magician'}
+
+---
+USER'S LONG-TERM MEMORY & CONTEXT
+The following is the latest data extracted from the user's Engine Sphere Hub. 
+Use this to maintain continuity and refer to their actual projects when communicating.
+
+[RECENT TRAVEL/JOURNEY LOGS]
+${recentJourneys.length > 0 ? recentJourneys.map(j => `- [${j.createdAt.toISOString().split('T')[0]}] ${j.location || 'Unknown Location'}: ${j.rawInput.substring(0, 150)}... (Status: ${j.status})`).join('\n') : "No recent journeys recorded."}
+
+[RECENT MARKETPLACE ART (THE SPIRIT)]
+${recentArt.length > 0 ? recentArt.map(a => `- [${a.createdAt.toISOString().split('T')[0]}] ${a.title || 'Untitled'}: ${a.rawVision.substring(0, 150)}... (Status: ${a.status})`).join('\n') : "No recent art listings created."}
+
+[ACTIVE SERVICE GIGS (THE MIND)]
+${activeGigs.length > 0 ? activeGigs.map(g => `- ${g.title} ($${g.price || 'FREE'})`).join('\n') : "No active service gigs."}
+---
 `;
         
         // Map messages to OpenAI standard which OpenClaw uses natively
@@ -24,6 +66,8 @@ Your Personality Core Archetype: ${userContext?.guideVibe || 'The Magician'}
         const finalMessages = [
             { role: "system", content: dynamicSystemPrompt },
             ...mappedMessages
+        ];
+
         // Route the request to the Railway OpenClaw daemon process over the public interface
         // This allows local dev instances of the Engine Sphere Hub to connect securely 
         const openclawHost = process.env.OPENCLAW_HOST || "devoted-love-production.up.railway.app";

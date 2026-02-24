@@ -16,14 +16,14 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "Git push failed or nothing to commit. Continuing to Railway Deploy..." -ForegroundColor DarkGray
 }
 
-# 2. Force Deploy Frontend (daring-enthusiasm) bypassing GitHub cache
-Write-Host "`n[2/3] Bypassing Cache: Uploading Frontend (daring-enthusiasm)..." -ForegroundColor Yellow
-npx @railway/cli up --service daring-enthusiasm --detach
+# 2. Force Deploy Frontend bypassing GitHub cache
+Write-Host "`n[2/3] Bypassing Cache: Uploading Frontend..." -ForegroundColor Yellow
+npx @railway/cli up --detach
 
-# 3. Force Deploy Backend (devoted-love) bypassing GitHub cache
-Write-Host "`n[3/3] Bypassing Cache: Uploading Nova Agent (devoted-love)..." -ForegroundColor Yellow
+# 3. Force Deploy Backend bypassing GitHub cache
+Write-Host "`n[3/3] Bypassing Cache: Uploading Nova Agent..." -ForegroundColor Yellow
 Set-Location -Path "nova-agent"
-npx @railway/cli up --service devoted-love --detach
+npx @railway/cli up --detach
 Set-Location -Path ".."
 
 Write-Host "`n==========================================" -ForegroundColor Green

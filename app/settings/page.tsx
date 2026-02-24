@@ -1,5 +1,5 @@
 
-import { currentUser } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/user";
 import { prisma } from "@/lib/prisma";
 import { checkSubscription } from "@/lib/subscription";
 import { redirect } from "next/navigation";
@@ -7,20 +7,10 @@ import { Cpu, Zap, Activity, CreditCard } from "lucide-react";
 import Link from "next/link";
 
 export default async function SettingsPage() {
-    const clerkUser = await currentUser();
-
-    if (!clerkUser) {
-        redirect("/sign-in");
-    }
-
-    // We need the DB user for the ID to query usage
-    const user = await prisma.user.findUnique({
-        where: { clerkId: clerkUser.id }
-    });
+    const user = await getCurrentUser();
 
     if (!user) {
-        // Handle case where user exists in Clerk but not DB (webhook lag?)
-        return <div>Initializing profile...</div>;
+        redirect("/sign-in");
     }
 
     const isPro = await checkSubscription();

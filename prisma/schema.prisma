@@ -13,7 +13,8 @@ datasource db {
 
 model User {
   id        String   @id @default(cuid())
-  clerkId   String   @unique // Link to Clerk User
+  clerkId   String?  @unique // Link to Clerk User (Legacy)
+  passwordHash String? // Native Auth (Bcrypt)
   username  String?  @unique // [PHASE 12] Custom handle e.g. @nova
   name      String?
   email     String   @unique
@@ -45,6 +46,7 @@ model User {
 
   tokensUsed  TokenUsage[]
   automations Automation[]
+  transactions TreasuryTransaction[] @relation("UserTransactions")
 
   // The 3 Personas
   personas Persona[]
@@ -392,4 +394,53 @@ model AgentStat {
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+// -------------------------------------------------------------------------------- //
+// THE SOVEREIGN TREASURY                                                           //
+// -------------------------------------------------------------------------------- //
+
+enum CurrencyCode {
+  USD
+  EUR
+  GBP
+  JPY
+  CNY
+  CHF
+  CAD
+  AUD
+  BRL
+  AED
+  CRYPTO
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  PIX
+  BANK_TRANSFER
+  CRYPTO_WALLET
+  MANUAL
+  UNKNOWN
+}
+
+model TreasuryTransaction {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation("UserTransactions", fields: [userId], references: [id], onDelete: Cascade)
+  
+  amount          Float    // The gross amount charged
+  currency        CurrencyCode @default(USD)
+  
+  status          String   @default("PENDING") // PENDING, COMPLETED, FAILED, REFUNDED
+  paymentMethod   PaymentMethod @default(UNKNOWN)
+  
+  externalId      String?  @unique // e.g., Stripe PaymentIntent ID, Pix TxId, or Crypto TxHash
+  metadata        Json?    // Any additional data related to this transaction
+  
+  description     String?  // e.g. "Pro Subscription Upgrade" or "Marketplace Art Purchase"
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
 }

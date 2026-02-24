@@ -1,17 +1,29 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { User } from "@prisma/client";
+import { getSessionUserId } from "@/lib/auth";
 
 // Define a safe fallback user type or return null
 // We return null to force the UI to handle the "not found" state responsibly
 
 export async function getCurrentUser(): Promise<User | null> {
     try {
+        // 1. Try Native Session (JWT) first
+        const nativeUserId = await getSessionUserId();
+        if (nativeUserId) {
+            const nativeUser = await prisma.user.findUnique({
+                where: { id: nativeUserId }
+            });
+            if (nativeUser) return nativeUser;
+        }
+
+        // 2. Fallback to Clerk Auth
         const clerkUser = await currentUser();
 
         if (!clerkUser) {
             return null;
         }
+
 
         const email = clerkUser.emailAddresses[0]?.emailAddress;
 

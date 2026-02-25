@@ -4,12 +4,11 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, X, Send, User, Server } from "lucide-react";
 import Image from "next/image";
-import { queryBrain, HARDWARE_CATALOG, SOFTWARE_SPARKS } from "@/lib/brain";
 
 export default function TheArchitect() {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<{ role: 'user' | 'bot', text: string, data?: any }[]>([
-        { role: 'bot', text: "Greetings. I am Nova. I am the central intelligence of the Engine Sphere. How may I assist you today?" }
+        { role: 'bot', text: "Greetings. I am Nova. My systems are online. How may I assist you with your journey today?" }
     ]);
     const [input, setInput] = useState("");
     const [isTyping, setIsTyping] = useState(false);
@@ -17,42 +16,41 @@ export default function TheArchitect() {
     const handleSend = () => {
         if (!input.trim()) return;
 
-        const userMsg = input;
-        setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
+        const newMessages = [...messages, { role: 'user' as const, text: userMsg }];
+        setMessages(newMessages);
         setInput("");
         setIsTyping(true);
 
-        // Simulated "Gemini" Response Logic
-        setTimeout(() => {
-            let botResponse = "";
-            let dataPayload = null;
-            let type = "chat";
+        try {
+            // Map the format to match what our API expects
+            const mappedForApi = newMessages.map(m => ({
+                role: m.role === 'bot' ? 'nova' : 'user',
+                content: m.text
+            }));
 
-            const brainResult = queryBrain(userMsg);
+            // Pass a generic userContext since public homepage visitors are not logged in
+            const res = await fetch('/api/nova/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: mappedForApi,
+                    userContext: { username: "Public Visitor", guideName: "Nova", guideVibe: "The Magician" }
+                })
+            });
 
-            if (brainResult) {
-                // @ts-ignore
-                type = brainResult.type;
-                // @ts-ignore
-                botResponse = brainResult.message || "I have processed your request.";
-
-                if (type === "provisioning") {
-                    botResponse = "I have calculated the optimal provisioning for your request. See below.";
-                    dataPayload = brainResult;
-                } else if (type === "agent_recommendation") {
-                    // @ts-ignore
-                    dataPayload = { type: 'agents', items: brainResult.data };
-                } else if (type === "catalog") {
-                    // @ts-ignore
-                    dataPayload = { type: 'catalog', items: brainResult.items };
-                }
+            if (res.ok) {
+                const data = await res.json();
+                setMessages(prev => [...prev, { role: 'bot', text: data.response }]);
             } else {
-                botResponse = "I am tuning to your frequency. Try asking for specific agent roles (e.g., 'Find a crypto analyst') or hardware.";
+                console.error("Chat API returned status:", res.status);
+                setMessages(prev => [...prev, { role: 'bot', text: "Comms interference. Re-establishing link." }]);
             }
-
-            setMessages(prev => [...prev, { role: 'bot', text: botResponse, data: dataPayload }]);
+        } catch (e) {
+            console.error("Chat API error:", e);
+            setMessages(prev => [...prev, { role: 'bot', text: "Mainframe Link Severed. Neural net offline." }]);
+        } finally {
             setIsTyping(false);
-        }, 1000);
+        }
     };
 
     return (
@@ -105,71 +103,7 @@ export default function TheArchitect() {
                                         {msg.text}
                                     </div>
 
-                                    {/* Data Payload Rendering */}
-                                    {msg.data && msg.data.recommendation && (
-                                        <div className="mt-2 w-full bg-black/50 border border-white/10 rounded p-3 text-xs">
-                                            <h4 className="font-bold text-white mb-2 flex items-center gap-2">
-                                                <Server size={14} /> Provisioning Table
-                                            </h4>
-
-                                            <div className="grid grid-cols-2 gap-2 mb-3">
-                                                <div className="text-gray-500">Hardware Unit</div>
-                                                <div className="text-right text-neon-cyan">{msg.data.hardware.name}</div>
-
-                                                <div className="text-gray-500">Hardware Cost</div>
-                                                <div className="text-right text-white">${msg.data.hardware.price}</div>
-
-                                                <div className="text-gray-500">Software Spark</div>
-                                                <div className="text-right text-neon-purple">{msg.data.software.name}</div>
-
-                                                <div className="text-gray-500">Software Fee</div>
-                                                <div className="text-right text-white">${msg.data.software.cost}</div>
-
-                                                <div className="col-span-2 border-t border-white/10 my-1"></div>
-
-                                                <div className="font-bold text-white">Total TCO</div>
-                                                <div className="font-bold text-right text-neon-cyan">${msg.data.hardware.price + msg.data.software.cost}</div>
-                                            </div>
-
-                                            <div className="bg-[#0a0a10] p-2 rounded border border-white/5 font-mono text-[10px] text-gray-400">
-                                                <div className="text-blue-400 mb-1">// agent.json update</div>
-                                                {`"hardware_access": ${JSON.stringify(msg.data.manifest_update.hardware_access)}`}
-                                            </div>
-
-                                            <button className="w-full mt-3 bg-neon-cyan/20 hover:bg-neon-cyan text-neon-cyan hover:text-black py-2 rounded font-bold transition-all">
-                                                CONFIRM & INITIALIZE
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    {/* Catalog Rendering */}
-                                    {msg.data && msg.data.type === 'catalog' && (
-                                        <div className="mt-2 w-full space-y-2">
-                                            {msg.data.items.map((item: any) => (
-                                                <div key={item.id} className="bg-black/50 border border-white/10 p-2 rounded flex justify-between items-center">
-                                                    <span className="text-white text-xs">{item.name}</span>
-                                                    <span className="text-neon-cyan text-xs">${item.price}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Agent List Rendering */}
-                                    {msg.data && msg.data.type === 'agents' && (
-                                        <div className="mt-2 w-full space-y-2">
-                                            {msg.data.items.map((agent: any) => (
-                                                <div key={agent.id} className="bg-neon-cyan/5 border border-neon-cyan/20 p-3 rounded flex justify-between items-start group hover:bg-neon-cyan/10 transition-colors cursor-pointer">
-                                                    <div>
-                                                        <div className="text-white text-xs font-bold">{agent.name}</div>
-                                                        <div className="text-[10px] text-gray-500">{agent.role}</div>
-                                                    </div>
-                                                    <a href={`/agents/${agent.id}`} className="text-neon-cyan text-[10px] border border-neon-cyan/30 px-2 py-1 rounded hover:bg-neon-cyan hover:text-black transition-colors">
-                                                        HIRE
-                                                    </a>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                    {/* Agent and Catalog simulated UI rendering removed */}
                                 </div>
                             ))}
                             {isTyping && (

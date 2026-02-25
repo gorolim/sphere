@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
     try {
         const adminEmail = process.env.MASTER_ADMIN_EMAIL || "rrolim.rafael@gmail.com";

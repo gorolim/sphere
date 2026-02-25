@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import NavBar from "@/components/NavBar";
 import Hero from "@/components/Hero"; // Keeping import but not using it as we use Newsroom Hero
 import JournalistCard from "@/components/JournalistCard";

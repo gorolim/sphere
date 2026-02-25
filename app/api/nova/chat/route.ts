@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function POST(req: Request) {
     try {
@@ -53,60 +54,55 @@ ${activeGigs.length > 0 ? activeGigs.map(g => `- ${g.title} ($${g.price || 'FREE
 ---
 `;
         
-        // Map messages to OpenAI standard which OpenClaw uses natively
-        const mappedMessages = messages.map((msg: any) => ({
-            role: msg.role === "nova" ? "assistant" : "user",
-            content: msg.content,
+        // Map messages to Gemini standard
+        let history = messages.slice(0, -1).map((msg: any) => ({
+            role: msg.role === "nova" ? "model" : "user",
+            parts: [{ text: msg.content }],
         }));
 
-        // Insert the dynamic system prompt at the beginning
-        const finalMessages = [
-            { role: "system", content: dynamicSystemPrompt },
-            ...mappedMessages
-        ];
-
-        // Route the request to the Railway OpenClaw daemon process over the public interface
-        // This allows local dev instances of the Engine Sphere Hub to connect securely 
-        const openclawHost = process.env.OPENCLAW_HOST || "devoted-love-production.up.railway.app";
-        const clawRes = await fetch(`https://${openclawHost}/v1/chat/completions`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                model: "google-antigravity/gemini-3.1-pro-high",
-                messages: finalMessages,
-                // Passing the userId allows OpenClaw to isolate persistent memory per user
-                user: userContext?.userId || "anonymous",
-                temperature: 0.7,
-            })
-        });
-
-        if (!clawRes.ok) {
-            const errText = await clawRes.text();
-            console.error("OpenClaw Daemon Error:", errText);
-            
-            // Helpful message if the daemon is simply not running yet
-            if (clawRes.status === 404 || errText.includes("ECONNREFUSED")) {
-                return NextResponse.json({ 
-                    response: "Neural Net Offline. Please run `npx openclaw serve --workspace ./nova-agent` in your terminal to boot my cognitive core." 
-                });
-            }
-            
-            throw new Error(`OpenClaw returned ${clawRes.status}`);
+        // Gemini strictly requires the initial history sequence to begin with a 'user' message.
+        // The frontend prepends Nova's greeting by default, so we must slice it out.
+        while (history.length > 0 && history[0].role === "model") {
+            history.shift();
         }
 
-        const data = await clawRes.json();
-        const response = data.choices[0].message.content;
+        const lastUserMessage = messages[messages.length - 1]?.content || "Hello.";
 
-        // The OpenClaw Daemon automatically handles writing to the Markdown progression logs in the background 
-        // as well as registering the user's heartbeat pulse.
+        let apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+            const fs = require('fs');
+            const path = require('path');
+            try {
+                const envPath = path.join(process.cwd(), '.env');
+                const envContent = fs.readFileSync(envPath, 'utf-8');
+                const keyLine = envContent.split('\n').find((line: string) => line.startsWith('GEMINI_API_KEY='));
+                if (keyLine) {
+                    apiKey = keyLine.split('=')[1].trim();
+                }
+            } catch (e) {
+                console.error("Failed to read .env for GEMINI_API_KEY", e);
+            }
+        }
+
+        if (!apiKey) {
+            throw new Error("GEMINI_API_KEY is missing from environment variables.");
+        }
+
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.5-flash",
+            systemInstruction: dynamicSystemPrompt,
+        });
+
+        const chat = model.startChat({ history });
+        const result = await chat.sendMessage(lastUserMessage);
+        const response = result.response.text();
 
         return NextResponse.json({ response });
-    } catch (error) {
-        console.error("Nova OpenClaw Connection Error:", error);
+    } catch (error: any) {
+        console.error("Nova Gemini Connection Error:", error);
         return NextResponse.json({ 
-            response: "My cognitive runtime (OpenClaw) is currently unreachable. Please ensure the daemon is running on port 18789." 
-        });
+            response: "Runtime error: " + (error.message || String(error))
+        }, { status: 500 });
     }
 }
